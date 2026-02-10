@@ -106,7 +106,7 @@ cl-admin-portal/
 1. Create `.env` from `.env.sample` and fill values.
 2. Install Python deps: `pip install -r requirements-dev.txt`.
 3. Install Node deps (for Tailwind): `npm install`.
-4. Build or watch CSS (see commands above).
+4. Build or watch CSS (see commands above).`npm run watch:css` for development. `npm run build:css` for production
 5. Start the app: `uvicorn app.main:create_app --factory --host 0.0.0.0 --port 8000 --reload`.
 
 ## Core environment variables

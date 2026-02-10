@@ -9,6 +9,8 @@
 			"version": "latest"
 		}
   },
+  "workspaceFolder": "/workspaces/cl-admin-portal",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/cl-admin-portal,type=bind,consistency=cached",
   "postCreateCommand": "pip install -r requirements-dev.txt && npm install",
   "customizations": {
     "vscode": {

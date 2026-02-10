@@ -1,0 +1,17 @@
+version: "3.9"
+services:
+  app:
+    build: .
+    env_file: .env
+    depends_on:
+      - redis
+    ports:
+      - "8000:8000"
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+volumes:
+  redis-data:

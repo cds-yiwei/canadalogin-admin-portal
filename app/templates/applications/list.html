@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<gcds-heading tag="h1">{{ t('applications.title') }}</gcds-heading>
+<div class="d-flex justify-content-between">
+  <gcds-text>{{ t('applications.description') }}</gcds-text>
+  <gcds-button type="link" href="/applications/new">{{ t('applications.create_button') }}</gcds-button>
+</div>
+    <section class="gcds-mb-200">
+      {% if applications %}
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th scope="col">{{ t('applications.table.id') }}</th>
+                <th scope="col">{{ t('applications.table.name') }}</th>
+                <th scope="col">{{ t('applications.table.type') }}</th>
+                <th scope="col">{{ t('applications.table.actions') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for app in applications %}
+                <tr>
+                  <td class="muted">{{ app.trimmed_id }}</td>
+                  <td>{{ app.app_name }}</td>
+                  <td class="muted">{{ app.app_type }}</td>
+                  <td>
+                    <div class="table-actions">
+                      {% if app.app_id %}
+                        <a class="link" href="/applications/{{ app.app_id }}">{{ t('applications.actions.view') }}</a>
+                      {% else %}
+                        <span class="muted">{{ t('applications.actions.view') }}</span>
+                      {% endif %}
+                      {% if app.app_id %}
+                        <a class="link muted" href="/applications/{{ app.app_id }}/usage">
+                          {{ t('applications.actions.usage') }}
+                        </a>
+                      {% else %}
+                        <span class="muted">{{ t('applications.actions.usage') }}</span>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="muted">{{ t('applications.empty_state') }}</p>
+      {% endif %}
+    </section>
+  
+{% endblock %}

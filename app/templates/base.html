@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="{{ current_locale() }}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="{{ description or t('app.description') }}" />
+    <title>{{ title or t('app.title') }}</title>
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.design-system.alpha.canada.ca/@gcds-core/css-shortcuts@1.0.1/dist/gcds-css-shortcuts.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.design-system.alpha.canada.ca/@cdssnc/gcds-components@0.47.0/dist/gcds/gcds.css"
+    />
+    <link rel="stylesheet" href="{{ url_for('static', path='/main.css') }}" />
+    <script
+      type="module"
+      src="https://cdn.design-system.alpha.canada.ca/@cdssnc/gcds-components@0.47.0/dist/gcds/gcds.esm.js"
+    ></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+    {% block head_extra %}{% endblock %}
+  </head>
+
+  <body x-data>
+    {% set locale = current_locale() %}
+    {% set switch_locale = 'en' if locale.startswith('fr') else 'fr' %}
+    <gcds-header lang-href="{{ lang_switch_url(switch_locale) }}" skip-to-href="#main-content">
+      <gcds-search slot="search"></gcds-search>
+      <gcds-breadcrumbs slot="breadcrumb">
+        <gcds-breadcrumbs-item href="/">{{ t('nav.home') }}</gcds-breadcrumbs-item>
+        {% for crumb in breadcrumbs or [] %}
+          <gcds-breadcrumbs-item href="{{ crumb.href }}">{{ crumb.label }}</gcds-breadcrumbs-item>
+        {% endfor %}
+      </gcds-breadcrumbs>
+
+      <gcds-top-nav slot="menu" label="{{ t('nav.menu_label') }}" alignment="right">
+        <gcds-nav-link href="/" slot="home">{{ t('app.title') }}</gcds-nav-link>
+
+        {% if user %}
+        <gcds-nav-link href="/">{{ t('nav.dashboard') }}</gcds-nav-link>
+        <gcds-nav-link href="/applications">{{ t('nav.applications') }}</gcds-nav-link>
+        <gcds-nav-group open-trigger="{{ user.get('display_name') or user.get('email') or t('nav.account') }}" menu-label="{{ t('nav.account') }}">
+          <gcds-nav-link href="/profile">{{ t('nav.profile') }}</gcds-nav-link>
+          <gcds-nav-link href="/auth/logout">{{ t('nav.sign_out') }}</gcds-nav-link>
+        </gcds-nav-group>
+        {% else %}
+        <gcds-nav-link href="/auth/login">{{ t('nav.sign_in') }}</gcds-nav-link>
+        {% endif %}
+      </gcds-top-nav>
+    </gcds-header>
+
+    <gcds-container
+      id="main-content"
+      main-container
+      size="xl"
+      centered
+      tag="main"
+    >
+        {% block content %}{% endblock %}
+        {% block fragments %}{% endblock %}
+        <gcds-date-modified>{{ date_modified or "2026-02-05" }}</gcds-date-modified>
+    </gcds-container>
+    <div
+      id="toast-region"
+      class="toast-region"
+      aria-live="polite"
+      aria-atomic="true"
+      x-data
+      x-show="$store.ui.toasts.length"
+      x-cloak
+    >
+      <template x-for="toast in $store.ui.toasts" :key="toast.id">
+        <div class="toast" :class="`toast-${toast.variant}`" x-transition>
+          <div class="toast-content">
+            <div class="toast-text">
+              <div class="toast-title" x-text="toast.title"></div>
+              <div class="toast-body" x-show="toast.body" x-text="toast.body"></div>
+            </div>
+            <button class="toast-close" type="button" aria-label="Dismiss" @click="$store.ui.removeToast(toast.id)">×</button>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <div
+      id="modal-shell"
+      class="modal-shell"
+      :class="{ 'is-open': $store.ui.modalHtml }"
+      :aria-hidden="!$store.ui.modalHtml"
+      x-show="$store.ui.modalHtml"
+      x-transition.opacity
+      x-cloak
+      @click.self="$store.ui.closeModal()"
+      @keydown.window.escape="$store.ui.closeModal()"
+    >
+      <div class="modal-panel" x-html="$store.ui.modalHtml"></div>
+    </div>
+
+    {% set footer_links = {
+      t('nav.home'): "/",
+      t('nav.applications'): "/applications",
+      t('nav.users_api'): "/api/v1/users",
+      t('nav.support'): "mailto:support@canada.ca"
+    } %}
+    <gcds-footer
+      display="full"
+      contextual-heading="{{ t('app.title') }}"
+      contextual-links='{{ footer_links | tojson }}'
+    >
+    </gcds-footer>
+
+    <script>
+      window.formatLocalDates = (root = document) => {
+        const locale = document.documentElement?.lang || undefined;
+        const dateFormatter = new Intl.DateTimeFormat(locale, {
+          year: "numeric",
+          month: "short",
+          day: "2-digit",
+        });
+
+        const dateTimeFormatter = new Intl.DateTimeFormat(locale, {
+          year: "numeric",
+          month: "short",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
+        const applyFormatter = (node, formatter) => {
+          const raw = node.getAttribute("data-epoch-seconds");
+          const epochSeconds = Number(raw);
+          if (!Number.isFinite(epochSeconds) || epochSeconds <= 0) return;
+          const date = new Date(epochSeconds * 1000);
+          if (Number.isNaN(date.getTime())) return;
+          node.textContent = formatter.format(date);
+        };
+
+        root.querySelectorAll(".js-local-date[data-epoch-seconds]").forEach((node) => {
+          applyFormatter(node, dateFormatter);
+        });
+
+        root.querySelectorAll(".js-local-datetime[data-epoch-seconds]").forEach((node) => {
+          applyFormatter(node, dateTimeFormatter);
+        });
+      };
+
+      document.addEventListener("alpine:init", () => {
+        Alpine.store("ui", {
+          toasts: [],
+          modalHtml: "",
+
+          addToast(payload = {}) {
+            const toast = {
+              id: (crypto?.randomUUID?.() || Date.now().toString()) + Math.random().toString(16).slice(2),
+              title: payload.title || "Notice",
+              body: payload.body || "",
+              variant: payload.variant || "info",
+              duration: Number(payload.duration) || 4800,
+            };
+            this.toasts.unshift(toast);
+            if (toast.duration > 0) {
+              window.setTimeout(() => this.removeToast(toast.id), toast.duration);
+            }
+          },
+
+          removeToast(id) {
+            this.toasts = this.toasts.filter((item) => item.id !== id);
+          },
+
+          openModal(html = "") {
+            this.modalHtml = html;
+            Alpine.nextTick(() => {
+              const modal = document.getElementById("modal-shell");
+              if (modal && window.htmx) window.htmx.process(modal);
+              window.formatLocalDates?.(modal || document);
+              window.requestAnimationFrame(() => {
+                modal?.focus({ preventScroll: true });
+              });
+            });
+          },
+
+          closeModal() {
+            this.modalHtml = "";
+          },
+        });
+      });
+
+      document.addEventListener("htmx:afterRequest", (evt) => {
+        const raw = evt.detail?.xhr?.getResponseHeader("HX-Trigger");
+        if (!raw || !window.Alpine?.store) return;
+        try {
+          const data = typeof raw === "string" ? JSON.parse(raw) : raw;
+          if (data.toast) Alpine.store("ui").addToast(data.toast);
+          if (data.modal?.html) Alpine.store("ui").openModal(data.modal.html);
+          if (data.closeModal) Alpine.store("ui").closeModal();
+        } catch (err) {
+          console.warn("Invalid HX-Trigger payload", err);
+        }
+      });
+
+      document.addEventListener("click", (evt) => {
+        if (evt.target.closest("[data-modal-close]")) {
+          evt.preventDefault();
+          window.Alpine?.store("ui")?.closeModal();
+        }
+
+        const copyButton = evt.target.closest("[data-copy-target]");
+        if (copyButton) {
+          evt.preventDefault();
+          const selector = copyButton.getAttribute("data-copy-target");
+          const successMessage =
+            copyButton.getAttribute("data-copy-success") || "Copied to clipboard.";
+          const node = selector ? document.querySelector(selector) : null;
+          const text = node?.textContent?.trim();
+          if (!text) return;
+          navigator.clipboard
+            .writeText(text)
+            .then(() => window.Alpine?.store("ui")?.addToast({
+              title: successMessage,
+              variant: "success",
+              duration: 2800,
+            }))
+            .catch(() => window.Alpine?.store("ui")?.addToast({
+              title: "Copy failed.",
+              variant: "warning",
+              duration: 2800,
+            }));
+        }
+      });
+
+      document.addEventListener("change", (evt) => {
+        const checkbox = evt.target.closest(".js-rotated-checkbox");
+        if (!checkbox) return;
+        const scope = checkbox.closest(".modal-panel") || document;
+        const anyChecked = !!scope.querySelector(".js-rotated-checkbox:checked");
+        const removeButton = scope.querySelector("[data-rotated-remove]");
+        if (removeButton) removeButton.toggleAttribute("disabled", !anyChecked);
+      });
+
+      document.addEventListener("DOMContentLoaded", () => {
+        window.formatLocalDates?.(document);
+      });
+
+      document.addEventListener("keydown", (evt) => {
+        if (evt.key === "Escape") {
+          window.Alpine?.store("ui")?.closeModal();
+        }
+      });
+    </script>
+
+    {% if toast_flash %}
+    <script>
+      (() => {
+        const toastFlash = {{ toast_flash | tojson }};
+        if (window.Alpine?.store) {
+          Alpine.store("ui").addToast(toastFlash);
+        } else {
+          document.addEventListener("alpine:init", () => Alpine.store("ui").addToast(toastFlash));
+        }
+      })();
+    </script>
+    {% endif %}
+
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

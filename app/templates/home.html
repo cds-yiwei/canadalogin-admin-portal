@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<gcds-heading tag="h1">{{ t('home.welcome', name=user.get('display_name') or user.get('email')) }}</gcds-heading>
+<p class="muted">{{ t('home.subtitle') }}</p>
+  <div class="panel-body">
+    {% set user_roles = user.get('roles', []) %}
+    {% set total_apps = applications_total or 0 %}
+    <div class="card-grid text-center align-content-center">
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title text-secondary font-h5">{{ t('home.applications_total') }}</div>
+        </div>
+        <div class="card-body">
+          <p class="font-h1">
+            <a href="/applications" class="link">{{ total_apps }}</a>
+          </p>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title text-secondary font-h5">{{ t('home.roles') }}</div>
+        </div>
+        <div class="card-body">
+          <p class="font-h4">{{ user_roles | join(', ') or t('common.na') }}</p>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title text-secondary font-h5">{{ t('home.user_name') }}</div>
+        </div>
+        <div class="card-body">
+          <p class="font-h4">{{ user.get('display_name') or user.get('email') or t('common.na') }}</p>
+        </div>
+      </section>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block content %}
+<gcds-heading tag="h1">{{ t('applications.create.title') }}</gcds-heading>
+<div class="d-flex justify-content-between">
+  <gcds-text>{{ t('applications.create.description') }}</gcds-text>
+  <gcds-button type="link" href="/applications">{{ t('applications.create.back_to_list') }}</gcds-button>
+</div>
+
+<section class="gcds-mb-200">
+  <form class="gcds-stack" style="gap:16px;" action="/applications/new" method="post">
+    <label class="gcds-stack" style="gap:6px;">
+      <gcds-text>{{ t('applications.detail.labels.name') }}</gcds-text>
+      <input name="name" type="text" class="gcds-input" placeholder="{{ t('applications.create.name_placeholder') }}" required />
+    </label>
+
+    <label class="gcds-stack" style="gap:6px;">
+      <gcds-text>{{ t('applications.detail.labels.description') }}</gcds-text>
+      <textarea name="description" class="gcds-input" rows="3" placeholder="{{ t('applications.create.description_placeholder') }}"></textarea>
+    </label>
+
+    <label class="gcds-stack" style="gap:6px;">
+      <gcds-text>{{ t('applications.detail.labels.company_name') }}</gcds-text>
+      <input
+        name="company_name"
+        type="text"
+        class="gcds-input"
+        placeholder="{{ t('applications.create.company_name_placeholder') }}"
+      />
+    </label>
+
+    <label class="gcds-stack" style="gap:6px;">
+      <gcds-text>{{ t('applications.detail.labels.application_url') }}</gcds-text>
+      <input name="application_url" type="url" class="gcds-input" placeholder="{{ t('applications.create.application_url_placeholder') }}" />
+    </label>
+
+    <label class="gcds-stack" style="gap:6px;">
+      <gcds-text>{{ t('applications.detail.labels.redirect_url') }}</gcds-text>
+      <textarea
+        name="redirect_uris"
+        class="gcds-input"
+        rows="3"
+        placeholder="{{ t('applications.create.redirect_url_placeholder') }}"
+      ></textarea>
+      <gcds-text class="muted">{{ t('applications.create.redirect_url_help') }}</gcds-text>
+    </label>
+
+    <fieldset class="gcds-stack" style="gap:8px;">
+      <legend class="gcds-text">{{ t('applications.detail.labels.grant_type') }}</legend>
+      <label class="gcds-stack" style="gap:6px;">
+        <div style="display:flex; gap:10px; align-items:flex-start;">
+          <input type="checkbox" checked disabled />
+          <span>authorization_code</span>
+        </div>
+        <input type="hidden" name="grant_types" value="authorization_code" />
+      </label>
+    </fieldset>
+
+    <label class="gcds-stack" style="gap:6px;">
+      <gcds-text>{{ t('applications.detail.labels.pkce_enabled') }}</gcds-text>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <input name="pkce_enabled" type="checkbox" value="true" />
+        <span>{{ t('applications.create.pkce_help') }}</span>
+      </div>
+    </label>
+
+    <gcds-text class="muted">{{ t('applications.create.placeholder_note') }}</gcds-text>
+
+    <div style="display:flex; gap:12px;">
+      <gcds-button type="link" href="/applications" variant="secondary">
+        {{ t('common.cancel') }}
+      </gcds-button>
+      <gcds-button type="submit">
+        {{ t('applications.create.submit') }}
+      </gcds-button>
+    </div>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,15 @@
+<section class="gcds-mb-400">
+  <div class="panel-header">
+    <h2 class="gcds-m-0">{{ t('requests.title') }}</h2>
+    <p class="muted">{{ t('requests.subtitle') }}</p>
+  </div>
+  <div class="panel-body">
+    <div class="gcds-stack" style="gap: 12px;">
+      <gcds-text>{{ t('requests.placeholder') }}</gcds-text>
+      <div class="actions">
+        <gcds-button type="button" hx-get="/fragments/demo-modal" hx-trigger="click" hx-swap="none">{{ t('requests.open_modal') }}</gcds-button>
+        <gcds-button type="button" variant="secondary" hx-get="/fragments/demo-toast" hx-trigger="click" hx-swap="none">{{ t('requests.show_toast') }}</gcds-button>
+      </div>
+    </div>
+  </div>
+</section>

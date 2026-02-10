@@ -1,0 +1,39 @@
+<div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="application-delete-title">
+  <div class="modal-header" style="display:flex; align-items:center; gap:12px;">
+    <gcds-heading tag="h3" class="modal-title" id="application-delete-title">
+      {{ t('applications.detail.delete_modal.title') }}
+    </gcds-heading>
+    <button class="modal-close" data-modal-close aria-label="{{ t('common.cancel') }}">×</button>
+  </div>
+  <div class="modal-body">
+    <gcds-text>{{ t('applications.detail.delete_modal.body') }}</gcds-text>
+    <gcds-text><strong>{{ t('applications.detail.delete_modal.warning') }}</strong></gcds-text>
+    <div class="table-wrapper">
+      <table class="data-table" style="min-width:0;">
+        <tbody>
+          <tr>
+            <th scope="row">{{ t('applications.detail.delete_modal.name_label') }}</th>
+            <td>{{ app_name or t('common.na') }}</td>
+          </tr>
+          <tr>
+            <th scope="row">{{ t('applications.detail.delete_modal.id_label') }}</th>
+            <td>{{ app_id or t('common.na') }}</td>
+          </tr>
+          <tr>
+            <th scope="row">{{ t('applications.detail.delete_modal.client_id_label') }}</th>
+            <td>{{ client_id or t('common.na') }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px;">
+    <gcds-button type="button" variant="secondary" data-modal-close>{{ t('common.cancel') }}</gcds-button>
+    <gcds-button
+      type="button"
+      button-role="danger"
+      hx-delete="/applications/{{ app_id | urlencode }}"
+      hx-swap="none"
+    >{{ t('common.delete') }}</gcds-button>
+  </div>
+</div>

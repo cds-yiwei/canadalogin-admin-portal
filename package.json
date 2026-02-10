@@ -1,0 +1,13 @@
+{
+  "name": "cl-admin-portal",
+  "private": true,
+  "scripts": {
+    "build:css": "tailwindcss -i app/assets/tailwind.css -o app/static/main.css --minify",
+    "watch:css": "tailwindcss -i app/assets/tailwind.css -o app/static/main.css --watch"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.10"
+  }
+}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<div>
+  <div class="panel-header">
+    <h1>{{ t('profile.title') }}</h1>
+    <p class="muted">{{ t('profile.subtitle') }}</p>
+  </div>
+  <div class="panel-body">
+    <section class="gcds-mb-400">
+      <gcds-heading tag="h2">{{ t('profile.session_details') }}</gcds-heading>
+      <ul class="gcds-list">
+        <li><strong>{{ t('home.user_id') }}:</strong> {{ user.get('id', t('common.na')) }}</li>
+        <li><strong>{{ t('home.email') }}:</strong> {{ user.get('email', t('common.na')) }}</li>
+        <li><strong>{{ t('profile.display_name') }}:</strong> {{ user.get('display_name', t('common.na')) }}</li>
+        <li><strong>{{ t('home.roles') }}:</strong> {{ user.get('roles', []) | join(', ') or t('common.na') }}</li>
+      </ul>
+    </section>
+
+    <section class="gcds-mb-400">
+      <gcds-heading tag="h2">{{ t('profile.verify_profile') }}</gcds-heading>
+      <pre class="code-block">{{ profile | tojson(indent=2) }}</pre>
+    </section>
+
+    <section class="gcds-mb-400">
+      <gcds-heading tag="h2">{{ t('profile.userinfo') }}</gcds-heading>
+      <pre class="code-block">{{ userinfo | tojson(indent=2) }}</pre>
+    </section>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block content %}
+<gcds-heading tag="h1">{{ t('applications.detail.title') }}</gcds-heading>
+<div class="d-flex justify-content-between">
+  <gcds-text>{{ t('applications.detail.description') }}</gcds-text>
+  <div class="table-actions">
+    <gcds-button type="link" href="/applications">{{ t('applications.detail.back_to_list') }}</gcds-button>
+    {% if app_id %}
+      <gcds-button type="link" href="/applications/{{ app_id }}/usage">
+        {{ t('applications.actions.usage') }}
+      </gcds-button>
+    {% endif %}
+  </div>
+</div>
+
+{% set client_id = application_payload.providers.oidc.properties.clientId if application_payload and application_payload.providers and application_payload.providers.oidc and application_payload.providers.oidc.properties else None %}
+{% set has_client_secret = application_payload and application_payload.providers and application_payload.providers.oidc and application_payload.providers.oidc.properties and application_payload.providers.oidc.properties.clientSecret %}
+
+<section class="gcds-mb-200">
+  <div class="table-wrapper">
+    <table class="data-table">
+      <tbody>
+        <tr>
+          <th scope="row">{{ t('applications.detail.labels.id') }}</th>
+          <td>{{ app_id or t('common.na') }}</td>
+        </tr>
+        <tr>
+          <th scope="row">{{ t('applications.detail.labels.name') }}</th>
+          <td>{{ application_payload.name or t('common.na') }}</td>
+        </tr>
+        <tr>
+          <th scope="row">{{ t('applications.detail.labels.company_name') }}</th>
+          <td>
+            {{
+              application_payload.providers.saml.properties.companyName
+              if application_payload
+              and application_payload.providers
+              and application_payload.providers.saml
+              and application_payload.providers.saml.properties
+              and application_payload.providers.saml.properties.companyName
+              else t('common.na')
+            }}
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">{{ t('applications.detail.labels.description') }}</th>
+          <td>{{ application_payload.description or t('common.na') }}</td>
+        </tr>
+        <tr>
+          <th scope="row">{{ t('applications.detail.labels.type') }}</th>
+          <td>{{ application_payload.type or t('common.na') }}</td>
+        </tr>
+        <tr>
+          <th scope="row">{{ t('applications.detail.labels.application_url') }}</th>
+          <td>{{ application_payload.providers.oidc.applicationUrl if application_payload and application_payload.providers and application_payload.providers.oidc else t('common.na') }}</td>
+        </tr>
+        <tr>
+          <th scope="row">{{ t('applications.detail.labels.client_id') }}</th>
+          <td>{{ client_id or t('common.na') }}</td>
+        </tr>
+        <tr>
+          <th scope="row">{{ t('applications.detail.labels.client_secret') }}</th>
+          <td>
+            {% if client_id %}
+              {% if has_client_secret %}
+                <span class="muted">••••••</span>
+              {% else %}
+                <span class="muted">{{ t('common.na') }}</span>
+              {% endif %}
+              <gcds-button
+                type="button"
+                hx-get="/fragments/client-secret?client_id={{ client_id | urlencode }}"
+                hx-trigger="click"
+                hx-swap="none"
+              >{{ t('common.view') }}</gcds-button>
+              <gcds-button
+                type="button"
+                button-role="secondary"
+                hx-get="/fragments/client-secret/edit?client_id={{ client_id | urlencode }}"
+                hx-trigger="click"
+                hx-swap="none"
+              >{{ t('common.edit') }}</gcds-button>
+            {% else %}
+              {{ t('common.na') }}
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">{{ t('applications.detail.labels.grant_type') }}</th>
+          <td>
+            {% if application_payload and application_payload.providers and application_payload.providers.oidc and application_payload.providers.oidc.properties and application_payload.providers.oidc.properties.grantTypes %}
+              {% for key, value in application_payload.providers.oidc.properties.grantTypes.items() %}
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" disabled {% if value == true or value == 'true' %}checked{% endif %}>
+                    {{ key }}
+                  </label>
+                </div>
+              {% endfor %}
+            {% else %}
+              {{ t('common.na') }}
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">{{ t('applications.detail.labels.redirect_url') }}</th>
+          <td>
+            {% if application_payload and application_payload.providers and application_payload.providers.oidc and application_payload.providers.oidc.properties and application_payload.providers.oidc.properties.redirectUris %}
+              {% for uri in application_payload.providers.oidc.properties.redirectUris %}
+                <div>{{ uri }}</div>
+              {% endfor %}
+            {% else %}
+              {{ t('common.na') }}
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">{{ t('applications.detail.labels.pkce_enabled') }}</th>
+          <td>
+            {% if application_payload and application_payload.providers and application_payload.providers.oidc %}
+              <input type="checkbox" disabled {% if application_payload.providers.oidc.requirePkceVerification == true or application_payload.providers.oidc.requirePkceVerification == 'true' %}checked{% endif %}>
+            {% else %}
+              {{ t('common.na') }}
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">{{ t('applications.detail.labels.developers') }}</th>
+          <td>
+            {% if application_payload and application_payload.properties and application_payload.properties.developers %}
+              {{ application_payload.properties.developers | join(', ') }}
+            {% else %}
+              {{ t('common.na') }}
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">{{ t('applications.detail.labels.owners') }}</th>
+          <td>
+            {% if application_payload and application_payload.owners %}
+              {% for owner in application_payload.owners %}
+                <div>{{ owner.email }}</div>
+              {% endfor %}
+            {% else %}
+              {{ t('common.na') }}
+            {% endif %}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{% if app_id %}
+  <div class="table-actions">
+    <gcds-button
+      type="button"
+      button-role="danger"
+      hx-get="/fragments/application-delete?app_id={{ app_id | urlencode }}{% if application_payload and application_payload.name %}&app_name={{ application_payload.name | urlencode }}{% endif %}{% if client_id %}&client_id={{ client_id | urlencode }}{% endif %}"
+      hx-trigger="click"
+      hx-swap="none"
+    >{{ t('common.delete') }}</gcds-button>
+  </div>
+{% endif %}
+
+{% endblock %}

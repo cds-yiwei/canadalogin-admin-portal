@@ -1,0 +1,14 @@
+SUPER_ADMIN:
+  - "*"
+RP_ADMIN:
+  - "app.read"
+  - "app.update"
+  - "dashboard.view"
+DEVELOPER:
+  - "app.read"
+  - "app.create"
+  - "app.update"
+  - "app.delete"
+  - "dashboard.view"
+READ_ONLY:
+  - "dashboard.view"

@@ -205,8 +205,12 @@ async def client_secret_edit_modal(
     if not client_id:
         trigger = {
             "toast": {
-                "title": translate(locale, "applications.detail.client_secret_edit_modal.missing_title"),
-                "body": translate(locale, "applications.detail.client_secret_edit_modal.missing_body"),
+                "title": translate(
+                    locale, "applications.detail.client_secret_edit_modal.missing_title"
+                ),
+                "body": translate(
+                    locale, "applications.detail.client_secret_edit_modal.missing_body"
+                ),
                 "variant": "warning",
             }
         }
@@ -308,8 +312,12 @@ async def client_secret_edit_submit(
     if not client_id:
         trigger = {
             "toast": {
-                "title": translate(locale, "applications.detail.client_secret_edit_modal.missing_title"),
-                "body": translate(locale, "applications.detail.client_secret_edit_modal.missing_body"),
+                "title": translate(
+                    locale, "applications.detail.client_secret_edit_modal.missing_title"
+                ),
+                "body": translate(
+                    locale, "applications.detail.client_secret_edit_modal.missing_body"
+                ),
                 "variant": "warning",
             }
         }
@@ -318,8 +326,12 @@ async def client_secret_edit_submit(
     if action not in {"regenerate", "rotate"}:
         trigger = {
             "toast": {
-                "title": translate(locale, "applications.detail.client_secret_edit_modal.invalid_action_title"),
-                "body": translate(locale, "applications.detail.client_secret_edit_modal.invalid_action_body"),
+                "title": translate(
+                    locale, "applications.detail.client_secret_edit_modal.invalid_action_title"
+                ),
+                "body": translate(
+                    locale, "applications.detail.client_secret_edit_modal.invalid_action_body"
+                ),
                 "variant": "warning",
             }
         }
@@ -332,10 +344,12 @@ async def client_secret_edit_submit(
             trigger = {
                 "toast": {
                     "title": translate(
-                        locale, "applications.detail.client_secret_edit_modal.missing_description_title"
+                        locale,
+                        "applications.detail.client_secret_edit_modal.missing_description_title",
                     ),
                     "body": translate(
-                        locale, "applications.detail.client_secret_edit_modal.missing_description_body"
+                        locale,
+                        "applications.detail.client_secret_edit_modal.missing_description_body",
                     ),
                     "variant": "warning",
                 }
@@ -424,7 +438,9 @@ async def client_secret_edit_submit(
     trigger = {
         "closeModal": True,
         "toast": {
-            "title": translate(locale, "applications.detail.client_secret_edit_modal.submit_success_title"),
+            "title": translate(
+                locale, "applications.detail.client_secret_edit_modal.submit_success_title"
+            ),
             "body": translate(locale, success_key),
             "variant": "success",
         },

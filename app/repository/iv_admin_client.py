@@ -30,9 +30,7 @@ class IBMVerifyAdminClient:
         return payload.get("resources", payload.get("Resources", []))
 
     async def get_application_detail(self, application_id: str) -> Dict[str, Any]:
-        response = await self._client.get(
-            f"{self._base_url}/v1.0/applications/{application_id}"
-        )
+        response = await self._client.get(f"{self._base_url}/v1.0/applications/{application_id}")
         response.raise_for_status()
         return response.json()
 
@@ -45,9 +43,7 @@ class IBMVerifyAdminClient:
         return response.json()
 
     async def delete_application(self, application_id: str) -> None:
-        response = await self._client.delete(
-            f"{self._base_url}/v1.0/applications/{application_id}"
-        )
+        response = await self._client.delete(f"{self._base_url}/v1.0/applications/{application_id}")
         response.raise_for_status()
 
     async def get_application_total_logins(

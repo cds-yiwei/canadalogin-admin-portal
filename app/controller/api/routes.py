@@ -40,7 +40,9 @@ async def get_current_user_profile(
     return ProfileResponse.model_validate(profile)
 
 
-@router.get("/applications/{application_id}/entitlements", response_model=ApplicationEntitlementsResponse)
+@router.get(
+    "/applications/{application_id}/entitlements", response_model=ApplicationEntitlementsResponse
+)
 async def get_application_entitlements(
     application_id: str,
     _user: dict = Depends(require_api_access(roles=[Role.SUPER_ADMIN])),

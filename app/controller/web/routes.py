@@ -205,7 +205,14 @@ def _build_application_creation_payload(form_data: dict, owners: list[str]) -> d
                         "authorizeRspEncryptionAlg": "none",
                         "authorizeRspEncryptionEnc": "none",
                         "responseTypes": ["none", "code"],
-                        "responseModes": ["query", "fragment", "form_post", "query.jwt", "fragment.jwt", "form_post.jwt"],
+                        "responseModes": [
+                            "query",
+                            "fragment",
+                            "form_post",
+                            "query.jwt",
+                            "fragment.jwt",
+                            "form_post.jwt",
+                        ],
                         "clientAuthMethod": "default",
                         "requirePushAuthorize": "false",
                         "requestObjectMaxExpFromNbf": 1800,
@@ -511,7 +518,10 @@ async def application_create_page(
             "breadcrumbs": [
                 {"href": "/", "label": translate(locale, "breadcrumbs.dashboard")},
                 {"href": "/applications", "label": translate(locale, "breadcrumbs.applications")},
-                {"href": "/applications/new", "label": translate(locale, "applications.create.title")},
+                {
+                    "href": "/applications/new",
+                    "label": translate(locale, "applications.create.title"),
+                },
             ],
         },
     )
@@ -579,11 +589,12 @@ async def application_detail_page(
     flash_toast = session.pop("flash_toast", None)
     locale = get_request_locale(request)
     breadcrumb_label = (
-        (parsed_application.name.strip() if parsed_application and parsed_application.name else "")
-        or application_id
-    )
+        parsed_application.name.strip() if parsed_application and parsed_application.name else ""
+    ) or application_id
     application_payload = (
-        parsed_application.model_dump(by_alias=True) if parsed_application is not None else application
+        parsed_application.model_dump(by_alias=True)
+        if parsed_application is not None
+        else application
     )
     return templates.TemplateResponse(
         "applications/detail.html",
@@ -619,7 +630,9 @@ async def delete_application(
             "body": translate(locale, "applications.detail.delete_success_body"),
             "variant": "success",
         }
-        return Response(status_code=status.HTTP_204_NO_CONTENT, headers={"HX-Redirect": "/applications"})
+        return Response(
+            status_code=status.HTTP_204_NO_CONTENT, headers={"HX-Redirect": "/applications"}
+        )
     except Exception as exc:  # noqa: BLE001
         logger.exception("Application delete failed: {}", exc)
         request.session["flash_toast"] = {
@@ -709,7 +722,10 @@ async def application_usage_page(
                 {"href": "/", "label": translate(locale, "breadcrumbs.dashboard")},
                 {"href": "/applications", "label": translate(locale, "breadcrumbs.applications")},
                 {"href": f"/applications/{application_id}", "label": breadcrumb_label},
-                {"href": f"/applications/{application_id}/usage", "label": translate(locale, "applications.actions.usage")},
+                {
+                    "href": f"/applications/{application_id}/usage",
+                    "label": translate(locale, "applications.actions.usage"),
+                },
             ],
         },
     )

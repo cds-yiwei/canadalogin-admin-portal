@@ -35,8 +35,12 @@ class ApplicationTotalLoginsReport(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     failed_logins: ApplicationTotalLoginsCount = Field(default_factory=ApplicationTotalLoginsCount)
-    successful_logins: ApplicationTotalLoginsCount = Field(default_factory=ApplicationTotalLoginsCount)
-    unique_users: ApplicationTotalLoginsUniqueUsers = Field(default_factory=ApplicationTotalLoginsUniqueUsers)
+    successful_logins: ApplicationTotalLoginsCount = Field(
+        default_factory=ApplicationTotalLoginsCount
+    )
+    unique_users: ApplicationTotalLoginsUniqueUsers = Field(
+        default_factory=ApplicationTotalLoginsUniqueUsers
+    )
 
 
 class ApplicationTotalLoginsBody(BaseModel):
@@ -84,7 +88,9 @@ class ApplicationAuditTrailHit(BaseModel):
 
     hit_id: str | None = Field(default=None, alias="_id")
     index: str | None = Field(default=None, alias="_index")
-    source: ApplicationAuditTrailSource = Field(default_factory=ApplicationAuditTrailSource, alias="_source")
+    source: ApplicationAuditTrailSource = Field(
+        default_factory=ApplicationAuditTrailSource, alias="_source"
+    )
     sort: List[Any] = Field(default_factory=list)
 
 

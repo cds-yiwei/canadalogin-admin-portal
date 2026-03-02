@@ -6,12 +6,7 @@
     <p class="muted">{{ t('login.subtitle') }}</p>
   </div>
   <div class="panel-body">
-    <form class="stack" method="get" action="/auth/oidc/start">
-      <p class="muted">{{ t('login.notice') }}</p>
-      <gcds-button type="submit">
-        {{ t('login.cta') }}
-      </gcds-button>
-    </form>
+    {% include 'auth/_signin_fragment.html' %}
   </div>
 </section>
 {% endblock %}

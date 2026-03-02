@@ -37,11 +37,15 @@ def create_app() -> FastAPI:
         try:
             await init_admin_api_client(app, settings)
             await init_user_http_client(app)
-            await init_session_store(app, settings)
+            import os
+            if not os.environ.get("SKIP_SESSION_STORE"):
+                await init_session_store(app, settings)
 
             yield
         finally:
-            await close_session_store(app)
+            import os
+            if not os.environ.get("SKIP_SESSION_STORE"):
+                await close_session_store(app)
             await close_user_http_client(app)
             await close_admin_api_client(app)
 
@@ -57,20 +61,28 @@ def create_app() -> FastAPI:
     app.add_middleware(LocaleMiddleware)
     app.add_middleware(TokenRefreshMiddleware)
 
-    # Autoload session if cookie is present
-    app.add_middleware(SessionAutoloadMiddleware)
-    # Order matters: add session middleware last so it runs first and sets request.session
-    setup_session_store(app, settings)
-    session_store = get_session_store(app)
-    app.add_middleware(
-        SessionMiddleware,
-        store=session_store,
-        rolling=True,
-        cookie_domain=settings.session_cookie_domain,
-        cookie_name=settings.session_cookie_name,
-        cookie_https_only=settings.session_cookie_secure,
-        lifetime=settings.session_lifetime,
-    )
+    # Session middleware and store initialization can be skipped in lightweight dev/test runs by setting
+    # the environment variable SKIP_SESSION_STORE=1. This avoids hard dependency on a local Redis instance
+    # when running static checks or a11y against the sign-in page.
+    import os
+
+    if not os.environ.get("SKIP_SESSION_STORE"):
+        # Autoload session if cookie is present
+        app.add_middleware(SessionAutoloadMiddleware)
+        # Order matters: add session middleware last so it runs first and sets request.session
+        setup_session_store(app, settings)
+        session_store = get_session_store(app)
+        app.add_middleware(
+            SessionMiddleware,
+            store=session_store,
+            rolling=True,
+            cookie_domain=settings.session_cookie_domain,
+            cookie_name=settings.session_cookie_name,
+            cookie_https_only=settings.session_cookie_secure,
+            lifetime=settings.session_lifetime,
+        )
+    else:
+        logger.warning("SKIP_SESSION_STORE is set — session middleware is disabled for this run")
 
     # Serve static assets used by Jinja templates
     static_dir = BASE_DIR / "static"

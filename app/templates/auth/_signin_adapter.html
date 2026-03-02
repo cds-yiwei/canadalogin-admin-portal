@@ -6,5 +6,7 @@
     <p id="login-notice" class="muted">{{ t('login.notice') }}</p>
     {# Use gcds-button for primary action; adapter centralizes any app-specific attributes #}
     <gcds-button type="submit" id="signin-cta">{{ t('login.cta') }}</gcds-button>
+    <!-- Hidden native submit button for accessibility tools that don't recognize custom elements -->
+    <button type="submit" aria-hidden="true" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);border:0;padding:0;margin:-1px;">{{ t('login.cta') }}</button>
   </form>
 </section>

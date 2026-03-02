@@ -65,7 +65,7 @@ def _parse_application_list(raw_items: Any) -> list[ApplicationListData]:
         if not isinstance(raw, dict):
             continue
 
-        href = (((raw.get("_links") or {}).get("self") or {}).get("href") or "").strip()
+        href = str(((raw.get("_links") or {}).get("self") or {}).get("href") or "").strip()
         app_id = _extract_application_id(raw)
         app_name = str(raw.get("name") or "").strip()
         app_type = str(raw.get("type") or "").strip()
@@ -107,7 +107,7 @@ def _normalize_epoch_seconds(raw_value: int | None) -> int | None:
 
 
 def _mask_email(value: str) -> str:
-    value = (value or "").strip()
+    value = str(value or "").strip()
     if not value or "@" not in value:
         return value
 
@@ -122,7 +122,7 @@ def _mask_email(value: str) -> str:
 
 
 def _mask_ip(value: str) -> str:
-    value = (value or "").strip()
+    value = str(value or "").strip()
     if not value:
         return value
 
@@ -277,9 +277,9 @@ def _parse_audit_trail(raw_payload: Any) -> list[dict[str, Any]]:
     for hit in hits:
         data = hit.source.data
         geoip = hit.source.geoip
-        username_raw = (data.username or "").strip()
+        username_raw = str(data.username or "").strip()
         username_known = bool(username_raw) and username_raw.upper() != "UNKNOWN"
-        origin_raw = (data.origin or "").strip()
+        origin_raw = str(data.origin or "").strip()
         ip_version: int | None = None
         if origin_raw:
             try:
@@ -287,9 +287,9 @@ def _parse_audit_trail(raw_payload: Any) -> list[dict[str, Any]]:
             except ValueError:
                 ip_version = None
 
-        result_raw = (data.result or "").strip().lower()
+        result_raw = str(data.result or "").strip().lower()
         time_seconds = _normalize_epoch_seconds(hit.source.time)
-        country = (geoip.country_name or geoip.country_iso_code or "").strip()
+        country = str(geoip.country_name or geoip.country_iso_code or "").strip()
         username_display = _mask_email(username_raw) if username_known else ""
         origin_display = _mask_ip(origin_raw)
 
@@ -538,7 +538,7 @@ async def application_create_submit(
     owner_id = (user or {}).get("id")
     owners: list[str] = [owner_id] if owner_id else []
     for value in form_data.getlist("owners"):
-        owner_value = value.strip()
+        owner_value = str(value).strip()
         if owner_value and owner_value not in owners:
             owners.append(owner_value)
 

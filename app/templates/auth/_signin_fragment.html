@@ -1,12 +1,2 @@
-<section>
-  <div class="panel-header">
-    <gcds-heading tag="h1">{{ t('login.title') }}</gcds-heading>
-    <p class="muted">{{ t('login.subtitle') }}</p>
-  </div>
-  <div class="panel-body">
-    <form class="gcds-form" method="get" action="/auth/oidc/start" role="form" aria-describedby="login-notice">
-      <p id="login-notice" class="muted">{{ t('login.notice') }}</p>
-      <gcds-button type="submit">{{ t('login.cta') }}</gcds-button>
-    </form>
-  </div>
-</section>
+{% comment %} Sign-in fragment — delegates to adapter for app-level adjustments {% endcomment %}
+{% include 'auth/_signin_adapter.html' %}

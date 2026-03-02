@@ -7,3 +7,4 @@ node_modules/
 .idea/
 .pytest_cache/
 .coverage
+.DS_Store

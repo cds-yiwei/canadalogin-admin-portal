@@ -124,3 +124,7 @@ cl-admin-portal/
 
 - Unit tests cover permission logic and service behavior in [tests/unit/core/test_permissions.py](tests/unit/core/test_permissions.py) and [tests/unit/application/services/test_admin_service.py](tests/unit/application/services/test_admin_service.py).
 - Add integration tests for OIDC flows, HTMX fragments, and IBM Verify adapters as features evolve.
+
+
+---
+Agent-oriented instructions: see AGENTS.md for automated-agent guidance and workflows.

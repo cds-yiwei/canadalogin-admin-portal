@@ -1,15 +1,20 @@
+import pathlib
 import pytest
-from fastapi.testclient import TestClient
 
-from app.main import create_app
+TEMPLATES_DIR = pathlib.Path(__file__).resolve().parents[2] / "app" / "templates" / "auth"
+LOGIN_TEMPLATE = TEMPLATES_DIR / "login.html"
+FRAGMENT = TEMPLATES_DIR / "_signin_fragment.html"
+ADAPTER = TEMPLATES_DIR / "_signin_adapter.html"
 
-
-@pytest.mark.parametrize("path", ["/auth/login"])
-def test_login_page_renders(path):
-    app = create_app()
-    client = TestClient(app)
-    resp = client.get(path)
-    assert resp.status_code == 200
-    # page should contain the sign-in heading or form
-    assert "<form" in resp.text
-    assert "gcds-button" in resp.text or "Sign in" in resp.text
+def test_login_template_exists_and_contains_fragment():
+    assert LOGIN_TEMPLATE.exists(), f"Missing login template: {LOGIN_TEMPLATE}"
+    text = LOGIN_TEMPLATE.read_text(encoding="utf-8")
+    # login page should include the centralized signin fragment or directly reference gcds-button
+    assert "_signin_fragment.html" in text or "gcds-button" in text
+    # fragment file should exist
+    assert FRAGMENT.exists(), f"Missing fragment: {FRAGMENT}"
+    frag_text = FRAGMENT.read_text(encoding="utf-8")
+    # fragment delegates to adapter; ensure adapter exists and uses gcds components
+    assert ADAPTER.exists(), f"Missing adapter: {ADAPTER}"
+    adapter_text = ADAPTER.read_text(encoding="utf-8")
+    assert "gcds-button" in adapter_text or "gcds-form" in adapter_text

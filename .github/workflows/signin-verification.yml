@@ -24,11 +24,11 @@ jobs:
           sudo apt-get install -y npm
 
       - name: Install pip deps
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
-          python -m pip install -r requirements-dev.txt
-
+run: |
+  python -m pip install --upgrade pip
+  python -m pip install -r requirements.txt
+  # Install test/lint tools explicitly to avoid pinned dev package conflicts
+  python -m pip install pytest pytest-cov flake8 mypy
       - name: Start app (uvicorn)
         run: |
           nohup python -m uvicorn app.main:create_app --host 0.0.0.0 --port 8000 &

@@ -1,0 +1,77 @@
+<div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="add-owner-title"
+     x-data="{ query: '', results: [], loading: false, error: '', searched: false }"
+     @htmx:afterSettle="$nextTick(() => document.querySelector('input[type=text]')?.focus())">
+  <div class="modal-header" style="display:flex; align-items:center; gap:12px;">
+    <gcds-heading tag="h3" class="modal-title" id="add-owner-title">
+      {{ t('applications.create.add_owner_modal.title') }}
+    </gcds-heading>
+    <button class="modal-close" data-modal-close aria-label="{{ t('common.cancel') }}">×</button>
+  </div>
+  <div class="modal-body">
+    <div class="gcds-stack" style="gap:12px;">
+      <label class="gcds-stack" style="gap:6px;">
+        <gcds-text>{{ t('applications.create.add_owner_modal.search_label') }}</gcds-text>
+        <input 
+          type="text" 
+          class="gcds-input" 
+          placeholder="{{ t('applications.create.add_owner_modal.search_placeholder') }}"
+          autocomplete="off"
+          x-model="query"
+          @keyup.debounce.300ms="async function() {
+            if (!query.trim()) { results = []; searched = false; return; }
+            searched = true;
+            loading = true;
+            error = '';
+            try {
+              const res = await fetch(`/api/v1/users/search?username=${encodeURIComponent(query)}`);
+              if (!res.ok) throw new Error(`HTTP ${res.status}`);
+              const users = await res.json();
+              // Filter out already added owners
+              const ownerIds = new Set(currentOwnerManager?.owners?.keys?.() || []);
+              results = users.filter(u => !ownerIds.has(u.id));
+            } catch(e) {
+              error = `{{ t('common.error') }}: ${e.message}`;
+            } finally {
+              loading = false;
+            }
+          }()"
+        />
+      </label>
+      
+      <div x-show="loading || results.length > 0 || error" style="max-height:300px; overflow-y:auto; border:1px solid #ccc; border-radius:4px;">
+        <div x-show="loading" style="padding:12px; text-align:center;">
+          <gcds-text>{{ t('common.loading') }}</gcds-text>
+        </div>
+        
+        <div x-show="!loading && results.length === 0 && error" style="padding:12px; color:#c00;">
+          <gcds-text x-text="error"></gcds-text>
+        </div>
+        
+        <div x-show="!loading && results.length === 0 && !error && searched" style="padding:12px; text-align:center;">
+          <gcds-text>{{ t('applications.create.add_owner_modal.no_results') }}</gcds-text>
+        </div>
+        
+        <template x-for="user in results" :key="user.id">
+          <div style="padding:12px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+            <div>
+              <div style="font-weight:600;" x-text="user.email"></div>
+            </div>
+            <button type="button" 
+              @click="
+                if (currentOwnerManager) {
+                  currentOwnerManager.addOwner(user);
+                  window.Alpine.store('ui').closeModal();
+                }
+              "
+              style="background:#1e5ba8; color:#fff; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">
+              {{ t('common.add') }}
+            </button>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px;">
+    <gcds-button type="button" variant="secondary" data-modal-close>{{ t('common.cancel') }}</gcds-button>
+  </div>
+</div>

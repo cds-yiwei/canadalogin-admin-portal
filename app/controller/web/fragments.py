@@ -447,6 +447,16 @@ async def client_secret_edit_submit(
     return Response("", headers={"HX-Trigger": json.dumps(success_trigger)})
 
 
+
+@router.get("/add-owner-modal", response_class=HTMLResponse)
+async def add_owner_modal(request: Request, _user: dict = Depends(require_web_user)):
+    """Return the add owner modal fragment."""
+    modal_html = templates.get_template("fragments/add_owner_modal.html").render(
+        request=request,
+    )
+    hx_trigger = {"modal": {"html": modal_html}}
+    return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
+
 @router.get("/{fragment_path:path}", response_class=HTMLResponse)
 async def render_fragment(fragment_path: str, request: Request):
     """Fallback renderer for any other SSR islands."""

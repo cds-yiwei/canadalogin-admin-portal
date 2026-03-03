@@ -21,6 +21,19 @@ class AdminService:
             for item in data
         ]
 
+    async def search_users_by_name(self, username: str) -> List[User]:
+        """Search for users by username."""
+        data = await self._client.search_users_by_name(username)
+        return [
+            User(
+                id=item.get("id", "unknown"),
+                email=item.get("userName", ""),
+                roles=[Role.READ_ONLY],
+                permissions=item.get("permissions", []),
+            )
+            for item in data
+        ]
+
     async def get_application_detail(self, application_id: str) -> Dict[str, Any]:
         return await self._client.get_application_detail(application_id)
 

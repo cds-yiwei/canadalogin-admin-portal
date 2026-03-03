@@ -59,6 +59,31 @@ class IBMVerifyAdminClient:
             return payload
         return payload.get("Resources", [])
 
+    async def search_users_by_name(self, username: str) -> List[Dict[str, Any]]:
+        """Search for users by username using the IBM Verify API.
+        
+        Args:
+            username: The username to search for
+            
+        Returns:
+            List of user dictionaries matching the search criteria
+        """
+        query_params = {
+            'count': 100,
+            'fullText': username,
+            'sortBy': 'name.formatted',
+            'startIndex': 1,
+        }
+        response = await self._client.get(
+            f"{self._base_url}/v2.0/Users",
+            params=query_params,
+        )
+        self._handle_response(response)
+        payload = response.json()
+        if isinstance(payload, list):
+            return payload
+        return payload.get("Resources", [])
+
     async def list_applications(self) -> List[Dict[str, Any]]:
         response = await self._client.get(f"{self._base_url}/v1.0/applications")
         self._handle_response(response)

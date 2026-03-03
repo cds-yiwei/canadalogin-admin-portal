@@ -1,3 +1,4 @@
+import json
 from fastapi import APIRouter, Depends, Request, status
 from fastapi.responses import JSONResponse
 
@@ -43,10 +44,25 @@ async def create_application(
     form_data = await request.form()
     owner_id = (_user or {}).get("id")
     owners: list[str] = [owner_id] if owner_id else []
-    for value in form_data.getlist("owners"):
-        owner_value = str(value).strip()
-        if owner_value and owner_value not in owners:
-            owners.append(owner_value)
+    
+    # Parse owners from hidden JSON field or form list
+    owners_value = form_data.get("owners")
+    if owners_value:
+        # Try to parse as JSON array first
+        if isinstance(owners_value, str) and owners_value.startswith("["):
+            try:
+                owner_ids = json.loads(owners_value)
+                for owner_id_item in owner_ids:
+                    owner_id_str = str(owner_id_item).strip()
+                    if owner_id_str and owner_id_str not in owners:
+                        owners.append(owner_id_str)
+            except (json.JSONDecodeError, ValueError) as e:
+                logger.warning("Failed to parse owners JSON: {}", e)
+        # Fall back to list parsing for backwards compatibility
+        for value in form_data.getlist("owners"):
+            owner_value = str(value).strip()
+            if owner_value and owner_value not in owners:
+                owners.append(owner_value)
 
     try:
         payload = _build_application_creation_payload(dict(form_data), owners)
@@ -82,6 +98,12 @@ async def create_application(
 async def list_users(_user: dict = Depends(require_api_access(roles=[Role.SUPER_ADMIN])), service: AdminService = Depends(get_admin_service)):
     return [UserRead.model_validate(user) for user in await service.list_users()]
 
+
+
+
+@router.get("/users/search", response_model=list[UserRead])
+async def search_users(username: str, _user: dict = Depends(require_api_access(roles=[Role.SUPER_ADMIN])), service: AdminService = Depends(get_admin_service)):
+    return [UserRead.model_validate(user) for user in await service.search_users_by_name(username)]
 
 @router.get("/applications/{application_id}/entitlements", response_model=ApplicationEntitlementsResponse)
 async def get_application_entitlements(application_id: str, _user: dict = Depends(require_api_access(roles=[Role.SUPER_ADMIN])), service: AdminService = Depends(get_admin_service)):

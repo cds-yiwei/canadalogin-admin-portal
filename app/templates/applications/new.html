@@ -1,3 +1,31 @@
+<script>
+// Global reference to current form's ownerManager
+let currentOwnerManager = null;
+
+// Owner Manager - Define before template uses it
+function ownerManager(currentUser = null) {
+  return {
+    owners: new Map(),
+    
+    init() {
+      // Pre-populate current user if provided
+      if (currentUser && currentUser.id) {
+        this.owners.set(currentUser.id, currentUser);
+      }
+      // Register globally so modal can access it
+      currentOwnerManager = this;
+    },
+    
+    addOwner(user) {
+      this.owners.set(user.id, user);
+    },
+    
+    removeOwner(userId) {
+      this.owners.delete(userId);
+    }
+  }
+}
+</script>
 {% extends "base.html" %}
 {% block content %}
 <gcds-heading tag="h1">{{ t('applications.create.title') }}</gcds-heading>
@@ -21,6 +49,7 @@
     style="gap:16px;"
     id="application-form"
     hx-post="/api/v1/applications"
+    hx-indicator=".htmx-indicator"
     x-data="{ clientAuthMethod: 'default', clientType: 'confidential', pkceEnabled: false, logoutMethod: 'none' }"
     x-init="$nextTick(()=>{ const sel = document.querySelector('select[name=\"client_auth_method\"]'); if(sel) clientAuthMethod = sel.value; const ct = document.querySelector('input[name=\"client_type\"]:checked'); if(ct) clientType = ct.value; if(clientType==='public') pkceEnabled = true; const logoutSel = document.querySelector('select[name=\"logout_method\"]'); if(logoutSel) logoutMethod = logoutSel.value; })"
     x-effect="if(clientType==='public'){ pkceEnabled = true }"
@@ -44,6 +73,7 @@
         <input name="application_url" type="url" class="gcds-input" placeholder="{{ t('applications.create.application_url_placeholder') }}" />
       </label>
     </fieldset>
+
 
     <fieldset class="gcds-stack" style="gap:20px;">
       <legend><gcds-heading tag="h2">{{ t('applications.create.sections.oidc_settings') }}</gcds-heading></legend>
@@ -129,6 +159,33 @@
       <gcds-heading tag="h3">{{ t('applications.create.labels.scopes') }}</gcds-heading>
       <gcds-text class="muted" style="white-space: nowrap;">{{ t('applications.create.scopes_help') | replace('openid', '<strong style="color: #333; font-weight: 700;">openid</strong>') | replace('profile', '<strong style="color: #333; font-weight: 700;">profile</strong>') | replace('email', '<strong style="color: #333; font-weight: 700;">email</strong>') | replace('phone', '<strong style="color: #333; font-weight: 700;">phone</strong>') | replace('language', '<strong style="color: #333; font-weight: 700;">language</strong>') | safe }}</gcds-text>
     </fieldset>
+    <fieldset class="gcds-stack" style="gap:12px;" x-data="ownerManager({ id: '{{ user.id }}', email: '{{ user.email }}', display_name: '{{ user.get('display_name') or user.get('email') }}', roles: [], permissions: [] })" x-init="init()">
+      <legend><gcds-heading tag="h2">{{ t('applications.create.sections.owners') }}</gcds-heading></legend>
+      <div class="gcds-stack" style="gap:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+          <gcds-text>{{ t('applications.create.labels.owners') }}</gcds-text>
+          <gcds-button type="button" hx-get="/fragments/add-owner-modal" hx-swap="none" variant="secondary">
+            {{ t('applications.create.add_owner_button') }}
+          </gcds-button>
+        </div>
+        <div class="gcds-stack" style="gap:8px; padding:12px; background:#f5f5f5; border-radius:4px; min-height:40px;">
+          <template x-if="owners.size === 0">
+            <gcds-text style="color:#999;">{{ t('applications.create.no_owners_added') }}</gcds-text>
+          </template>
+          <template x-for="[id, user] in [...owners.entries()]" :key="id">
+            <div style="padding:12px; background:#fff; border:1px solid #ddd; border-radius:4px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+              <div>
+                <div style="font-weight:600;" x-text="user.email"></div>
+              </div>
+              <button type="button" @click="removeOwner(id)" style="background:#c00; color:#fff; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">
+                {{ t('common.remove') }}
+              </button>
+            </div>
+          </template>
+        </div>
+        <input type="hidden" name="owners" x-bind:value="JSON.stringify([...owners.keys()])" />
+      </div>
+    </fieldset>
     <gcds-text class="muted">{{ t('applications.create.placeholder_note') }}</gcds-text>
 
     <div style="display:flex; gap:12px;">
@@ -137,7 +194,7 @@
       </gcds-button>
       <gcds-button type="submit" id="submit-button">
         <span id="button-text">{{ t('applications.create.submit') }}</span>
-        <span id="button-spinner" style="display:none; margin-left:8px;">
+        <span class="htmx-indicator" style="margin-left:8px;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="animation:spin 1s linear infinite; display:inline-block;">
             <circle cx="12" cy="12" r="10" stroke-width="2" stroke-dasharray="15.7" stroke-dashoffset="0"></circle>
           </svg>
@@ -148,88 +205,68 @@
 </section>
 
 <style>
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+  }  
+  
+  /* HTMX Indicator Styles */
+  .htmx-indicator {
+    display: none;
+  }
+  
+  .htmx-request .htmx-indicator {
+    display: inline;
+  }
+  
+  .htmx-request .htmx-request\:hidden {
+    display: none;
   }
 </style>
 
 <script>
 // Handle HTMX form submission responses
-const submitButton = document.getElementById('submit-button');
-const buttonText = document.getElementById('button-text');
-const buttonSpinner = document.getElementById('button-spinner');
-
-// Show loading state on form submission
-document.getElementById('application-form').addEventListener('htmx:beforeRequest', function(event) {
-  submitButton.disabled = true;
-  buttonText.style.display = 'none';
-  buttonSpinner.style.display = 'inline';
-});
-
-// Handle HTMX form submission responses
-document.getElementById('application-form').addEventListener('htmx:afterRequest', function(event) {
-  console.log('HTMX afterRequest event fired');
-  const xhr = event.detail.xhr;
-  if (!xhr) {
-    console.error('No xhr object found');
-    return;
-  }
-  
-  const status = xhr.status;
-  console.log('Response status:', status);
-  console.log('Response text:', xhr.responseText);
-  
-  let response;
-  try {
-    response = JSON.parse(xhr.responseText);
-    console.log('Parsed response:', response);
-  } catch (e) {
-    console.error('Failed to parse response:', e);
-    response = { detail: 'Invalid response format' };
-  }
-  
-  const errorContainer = document.getElementById('error-message');
-  const errorDetail = document.getElementById('error-detail');
-  const submitButton = document.getElementById('submit-button');
+document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('application-form');
+  if (!form) return;
   
-  // Prevent default HTMX swapping
-  event.detail.shouldSwap = false;
-  
-  if (status === 201) {
-    console.log('Handling 201 success');
-    // Show success toast and redirect to applications list
-    window.Alpine.store('ui').addToast({
-      title: '{{ t('applications.create.toast_success_title') }}',
-      body: '{{ t('applications.create.toast_success_body') }}',
-      variant: 'success',
-      duration: 4800
-    });
-    // Redirect to applications list after a brief delay
-    setTimeout(() => {
-      window.location.href = '/applications';
-    }, 500);
-  } else if (status === 400) {
-    console.log('Handling 400 error');
-    errorDetail.textContent = response.detail || 'Invalid request';
-    errorContainer.style.display = 'block';
-    submitButton.disabled = false;
-    form.style.opacity = '1';
-    buttonText.style.display = 'inline';
-    buttonSpinner.style.display = 'none';
-    errorContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  } else if (status >= 500) {
-    console.log('Handling 5xx error');
-    errorDetail.textContent = response.detail || 'Server error occurred';
-    errorContainer.style.display = 'block';
-    submitButton.disabled = false;
-    form.style.opacity = '1';
-    buttonText.style.display = 'inline';
-    buttonSpinner.style.display = 'none';
-  } else {
-    console.log('Unexpected status code:', status);
-  }
+  // Handle HTMX form submission responses
+  form.addEventListener('htmx:afterRequest', function(event) {
+    const xhr = event.detail.xhr;
+    const status = xhr.status;
+    const submitButton = document.getElementById('submit-button');
+    const errorContainer = document.getElementById('error-message');
+    const errorDetail = document.getElementById('error-detail');
+    
+    // Prevent default HTMX swapping
+    event.detail.shouldSwap = false;
+    
+    let response;
+    try {
+      response = JSON.parse(xhr.responseText);
+    } catch (e) {
+      response = { detail: 'Invalid response format' };
+    }
+    
+    if (status === 201) {
+      // Show success toast and redirect to applications list
+      window.Alpine.store('ui').addToast({
+        title: '{{ t('applications.create.toast_success_title') }}',
+        body: '{{ t('applications.create.toast_success_body') }}',
+        variant: 'success',
+        duration: 4800
+      });
+      // Redirect to applications list after a brief delay
+      setTimeout(() => {
+        window.location.href = '/applications';
+      }, 500);
+    } else if (status === 400 || status >= 500) {
+      // Show error message
+      if (errorDetail) errorDetail.textContent = response.detail || 'An error occurred';
+      if (errorContainer) errorContainer.style.display = 'block';
+      if (submitButton) submitButton.disabled = false;
+      if (errorContainer) errorContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  });
 });
+
+
 </script>
 {% endblock %}

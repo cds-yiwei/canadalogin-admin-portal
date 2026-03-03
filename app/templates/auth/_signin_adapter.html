@@ -1,7 +1,5 @@
 {# Adapter wrapping GC Design System signin pieces to provide app-level hooks and consistent props #}
 <section aria-labelledby="signin-title">
-  <gcds-heading tag="h1" id="signin-title">{{ t('login.title') }}</gcds-heading>
-  <p class="muted">{{ t('login.subtitle') }}</p>
   <form class="gcds-form" method="get" action="/auth/oidc/start" role="form" aria-describedby="login-notice">
     <p id="login-notice" class="muted">{{ t('login.notice') }}</p>
     {# Use gcds-button for primary action; adapter centralizes any app-specific attributes #}

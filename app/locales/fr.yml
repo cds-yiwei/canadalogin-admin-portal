@@ -59,9 +59,42 @@ applications:
     application_url_placeholder: "https://exemple.gc.ca"
     redirect_url_placeholder: "https://exemple.gc.ca/retour"
     redirect_url_help: "Une URL par ligne."
+    scopes_help: "openid est obligatoire par defaut. Scopes optionnels disponibles : profile, email, phone, language."
     pkce_help: "Exiger la verification PKCE."
     owners_help: "Les proprietaires sont definis a votre ID utilisateur pour l'instant."
     placeholder_note: "La soumission va creer l'application dans Verify."
+    labels:
+      client_type: "Type de client"
+      client_auth_method: "Methode d'authentification du client"
+      post_logout_redirect_uris: "URI de redirection apres deconnexion"
+      logout_uri: "URI de deconnexion"
+      logout_method: "Methode de deconnexion"
+      scopes: "Scopes demandes"
+      jwks_uri: "URI JWKS"
+    client_type:
+      confidential: "Confidentiel"
+      public: "Public"
+    client_auth_method:
+      choose: "Choisissez une methode d'authentification"
+    post_logout_redirect_placehoder: "https://exemple.gc.ca/logout-callback"
+    post_logout_redirect_help: "Une URL par ligne."
+    logout_uri_placeholder: "https://exemple.gc.ca/logout"
+    logout_method:
+      none: "Aucune"
+      back_channel: "Deconnexion back-channel"
+      front_channel: "Deconnexion front-channel"
+    jwks_uri_placeholder: "https://exemple.gc.ca/.well-known/jwks.json"
+    jwks_uri_help: "Fournissez l'URI JWKS pour private_key_jwt."
+    private_key_jwt:
+      title: "Parametres private_key_jwt"
+    single_logout:
+      title: "Deconnexion unique"
+    sections:
+      application_info: "Infos sur l'application"
+      oidc_settings: "Parametres OIDC"
+      basic_oidc: "OIDC de base"
+      client_settings: "Parametres du client"
+      single_logout: "Deconnexion unique"
     submit: "Creer"
     toast_success_title: "Application creee"
     toast_success_body: "Votre application est prete."

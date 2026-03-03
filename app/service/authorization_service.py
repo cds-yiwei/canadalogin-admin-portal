@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import Dict, List, Protocol
 from app.core.permissions import ALL_PERMISSIONS
 from app.core.roles import Role
+from app.repository.yaml_role_policy_repository import YamlRolePolicyRepository
 
 
 class AuthorizationService:
-    def __init__(self, policy_repository: RolePolicyRepository):
+    def __init__(self, policy_repository: YamlRolePolicyRepository):
         self._policy_repository = policy_repository
 
     def resolve_permissions(self, roles: list[Role]) -> list[str]:
@@ -19,8 +19,3 @@ class AuthorizationService:
                     break
                 resolved.add(perm)
         return sorted(resolved)
-
-
-class RolePolicyRepository(Protocol):
-    def load_policy(self) -> Dict[str, List[str]]:
-        raise NotImplementedError

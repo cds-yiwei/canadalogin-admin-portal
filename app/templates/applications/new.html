@@ -7,61 +7,110 @@
 </div>
 
 <section class="gcds-mb-200">
-  <form class="gcds-stack" style="gap:16px;" action="/applications/new" method="post">
-    <label class="gcds-stack" style="gap:6px;">
-      <gcds-text>{{ t('applications.detail.labels.name') }}</gcds-text>
-      <input name="name" type="text" class="gcds-input" placeholder="{{ t('applications.create.name_placeholder') }}" required />
-    </label>
-
-    <label class="gcds-stack" style="gap:6px;">
-      <gcds-text>{{ t('applications.detail.labels.description') }}</gcds-text>
-      <textarea name="description" class="gcds-input" rows="3" placeholder="{{ t('applications.create.description_placeholder') }}"></textarea>
-    </label>
-
-    <label class="gcds-stack" style="gap:6px;">
-      <gcds-text>{{ t('applications.detail.labels.company_name') }}</gcds-text>
-      <input
-        name="company_name"
-        type="text"
-        class="gcds-input"
-        placeholder="{{ t('applications.create.company_name_placeholder') }}"
-      />
-    </label>
-
-    <label class="gcds-stack" style="gap:6px;">
-      <gcds-text>{{ t('applications.detail.labels.application_url') }}</gcds-text>
-      <input name="application_url" type="url" class="gcds-input" placeholder="{{ t('applications.create.application_url_placeholder') }}" />
-    </label>
-
-    <label class="gcds-stack" style="gap:6px;">
-      <gcds-text>{{ t('applications.detail.labels.redirect_url') }}</gcds-text>
-      <textarea
-        name="redirect_uris"
-        class="gcds-input"
-        rows="3"
-        placeholder="{{ t('applications.create.redirect_url_placeholder') }}"
-      ></textarea>
-      <gcds-text class="muted">{{ t('applications.create.redirect_url_help') }}</gcds-text>
-    </label>
-
-    <fieldset class="gcds-stack" style="gap:8px;">
-      <legend class="gcds-text">{{ t('applications.detail.labels.grant_type') }}</legend>
+  <form class="gcds-stack" style="gap:16px;" action="/applications/new" method="post" x-data="{ clientAuthMethod: 'default', clientType: 'confidential', pkceEnabled: false, logoutMethod: 'none' }" x-init="$nextTick(()=>{ const sel = document.querySelector('select[name=\"client_auth_method\"]'); if(sel) clientAuthMethod = sel.value; const ct = document.querySelector('input[name=\"client_type\"]:checked'); if(ct) clientType = ct.value; if(clientType==='public') pkceEnabled = true; const logoutSel = document.querySelector('select[name=\"logout_method\"]'); if(logoutSel) logoutMethod = logoutSel.value; })" x-effect="if(clientType==='public'){ pkceEnabled = true }" >
+    <fieldset class="gcds-stack" style="gap:12px;">
+      <legend><gcds-heading tag="h2">{{ t('applications.create.sections.application_info') }}</gcds-heading></legend>
       <label class="gcds-stack" style="gap:6px;">
-        <div style="display:flex; gap:10px; align-items:flex-start;">
-          <input type="checkbox" checked disabled />
-          <span>authorization_code</span>
-        </div>
-        <input type="hidden" name="grant_types" value="authorization_code" />
+        <gcds-text>{{ t('applications.detail.labels.name') }}</gcds-text>
+        <input name="name" type="text" class="gcds-input" placeholder="{{ t('applications.create.name_placeholder') }}" required />
+      </label>
+      <label class="gcds-stack" style="gap:6px;">
+        <gcds-text>{{ t('applications.detail.labels.description') }}</gcds-text>
+        <textarea name="description" class="gcds-input" rows="3" placeholder="{{ t('applications.create.description_placeholder') }}"></textarea>
+      </label>
+      <label class="gcds-stack" style="gap:6px;">
+        <gcds-text>{{ t('applications.detail.labels.company_name') }}</gcds-text>
+        <input name="company_name" type="text" class="gcds-input" placeholder="{{ t('applications.create.company_name_placeholder') }}" />
+      </label>
+      <label class="gcds-stack" style="gap:6px;">
+        <gcds-text>{{ t('applications.detail.labels.application_url') }}</gcds-text>
+        <input name="application_url" type="url" class="gcds-input" placeholder="{{ t('applications.create.application_url_placeholder') }}" />
       </label>
     </fieldset>
 
-    <label class="gcds-stack" style="gap:6px;">
-      <gcds-text>{{ t('applications.detail.labels.pkce_enabled') }}</gcds-text>
-      <div style="display:flex; gap:10px; align-items:center;">
-        <input name="pkce_enabled" type="checkbox" value="true" />
-        <span>{{ t('applications.create.pkce_help') }}</span>
+    <fieldset class="gcds-stack" style="gap:20px;">
+      <legend><gcds-heading tag="h2">{{ t('applications.create.sections.oidc_settings') }}</gcds-heading></legend>
+      <div class="gcds-stack" style="gap:12px;">
+        <gcds-heading tag="h3">{{ t('applications.create.sections.basic_oidc') }}</gcds-heading>
+        <fieldset class="gcds-stack" style="gap:8px;">
+          <legend class="gcds-text">{{ t('applications.detail.labels.grant_type') }}</legend>
+          <label class="gcds-stack" style="gap:6px;">
+            <div style="display:flex; gap:10px; align-items:flex-start;">
+              <input type="checkbox" checked disabled />
+              <span>authorization_code</span>
+            </div>
+            <input type="hidden" name="grant_types" value="authorization_code" />
+          </label>
+        </fieldset>
+        <label class="gcds-stack" style="gap:6px;">
+          <gcds-text>{{ t('applications.detail.labels.redirect_url') }}</gcds-text>
+          <textarea name="redirect_uris" class="gcds-input" rows="3" placeholder="{{ t('applications.create.redirect_url_placeholder') }}"></textarea>
+          <gcds-text class="muted">{{ t('applications.create.redirect_url_help') }}</gcds-text>
+        </label>
+        <fieldset class="gcds-stack" style="gap:8px;">
+          <legend class="gcds-text">{{ t('applications.create.labels.scopes') }}</legend>
+          <gcds-text class="muted">{{ t('applications.create.scopes_help') }}</gcds-text>
+        </fieldset>
       </div>
-    </label>
+      <div class="gcds-stack" style="gap:12px;">
+        <gcds-heading tag="h3">{{ t('applications.create.sections.client_settings') }}</gcds-heading>
+        <label class="gcds-stack" style="gap:6px;">
+          <gcds-text>{{ t('applications.create.labels.client_type') }}</gcds-text>
+          <div style="display:flex; gap:12px;">
+            <label style="display:flex; align-items:center; gap:8px;"><input x-model="clientType" type="radio" name="client_type" value="confidential" checked /> {{ t('applications.create.client_type.confidential') }}</label>
+            <label style="display:flex; align-items:center; gap:8px;"><input x-model="clientType" type="radio" name="client_type" value="public" /> {{ t('applications.create.client_type.public') }}</label>
+          </div>
+        </label>
+        <label class="gcds-stack" style="gap:6px;" x-show="clientType !== 'public'" x-cloak>
+          <gcds-text>{{ t('applications.create.labels.client_auth_method') }}</gcds-text>
+          <select name="client_auth_method" class="gcds-input" x-model="clientAuthMethod">
+            <option value="">{{ t('applications.create.client_auth_method.choose') }}</option>
+            <option value="default" selected>default</option>
+            <option value="client_secret_basic">client_secret_basic</option>
+            <option value="client_secret_post">client_secret_post</option>
+            <option value="private_key_jwt">private_key_jwt</option>
+          </select>
+        </label>
+        <div id="jwks_uri_container" x-show="clientType !== 'public' && clientAuthMethod === 'private_key_jwt'" x-cloak>
+          <fieldset class="gcds-stack" style="gap:6px;">
+            <legend><gcds-heading tag="h2">{{ t('applications.create.private_key_jwt.title') }}</gcds-heading></legend>
+            <label class="gcds-stack" style="gap:6px;">
+              <gcds-text>{{ t('applications.create.labels.jwks_uri') }}</gcds-text>
+              <input name="jwks_uri" type="url" class="gcds-input" placeholder="{{ t('applications.create.jwks_uri_placeholder') }}" />
+              <gcds-text class="muted">{{ t('applications.create.jwks_uri_help') }}</gcds-text>
+            </label>
+          </fieldset>
+        </div>
+        <label class="gcds-stack" style="gap:6px;">
+          <gcds-text>{{ t('applications.detail.labels.pkce_enabled') }}</gcds-text>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <input id="pkce_enabled_checkbox" x-model="pkceEnabled" name="pkce_enabled" type="checkbox" value="true" x-bind:disabled="clientType==='public'" />
+            <span>{{ t('applications.create.pkce_help') }}</span>
+            <input type="hidden" name="pkce_enabled_force" id="pkce_enabled_force" x-bind:value="clientType==='public' ? 'true' : ''" />
+          </div>
+        </label>
+      </div>
+      <div class="gcds-stack" style="gap:12px;">
+        <gcds-heading tag="h3">{{ t('applications.create.sections.single_logout') }}</gcds-heading>
+        <label class="gcds-stack" style="gap:6px;">
+          <gcds-text>{{ t('applications.create.labels.logout_method') }}</gcds-text>
+          <select name="logout_method" class="gcds-input" x-model="logoutMethod">
+            <option value="none" selected>{{ t('applications.create.logout_method.none') }}</option>
+            <option value="back_channel">{{ t('applications.create.logout_method.back_channel') }}</option>
+            <option value="front_channel">{{ t('applications.create.logout_method.front_channel') }}</option>
+          </select>
+        </label>
+        <label class="gcds-stack" style="gap:6px;" x-show="logoutMethod !== 'none'" x-cloak>
+          <gcds-text>{{ t('applications.create.labels.logout_uri') }}</gcds-text>
+          <input name="logout_uri" type="url" class="gcds-input" placeholder="{{ t('applications.create.logout_uri_placeholder') }}" />
+        </label>
+        <label class="gcds-stack" style="gap:6px;" x-show="logoutMethod !== 'none'" x-cloak>
+          <gcds-text>{{ t('applications.create.labels.post_logout_redirect_uris') }}</gcds-text>
+          <textarea name="post_logout_redirect_uris" class="gcds-input" rows="2" placeholder="{{ t('applications.create.post_logout_redirect_placehoder') }}"></textarea>
+          <gcds-text class="muted">{{ t('applications.create.post_logout_redirect_help') }}</gcds-text>
+        </label>
+      </div>
+    </fieldset>
 
     <gcds-text class="muted">{{ t('applications.create.placeholder_note') }}</gcds-text>
 

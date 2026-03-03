@@ -230,6 +230,7 @@ class OidcAdditionalConfig(BaseModel):
     sessionRequired: bool | None = None
     subjectTokenTypes: List[str] = Field(default_factory=list)
     validateDPoPProofJti: bool | None = None
+    jwksUri: str | None = None
 
 
 class OidcGrantTypes(BaseModel):
@@ -283,7 +284,7 @@ class OidcProvider(BaseModel):
     properties: OidcProperties | None = None
     requirePkceVerification: str | None = None
     restrictEntitlements: bool | None = None
-    scopes: List[Any] = Field(default_factory=list)
+    scopes: List[Any] | None = None
     token: OidcTokenConfig | None = None
 
 

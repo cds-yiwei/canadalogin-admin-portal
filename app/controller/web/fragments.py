@@ -71,8 +71,8 @@ async def demo_modal(request: Request):
         cancel_label=translate(locale, "modal.cancel"),
         submit_label=translate(locale, "modal.submit"),
     )
-    trigger = {"modal": {"html": modal_html}}
-    return Response("", headers={"HX-Trigger": json.dumps(trigger)})
+    hx_trigger = {"modal": {"html": modal_html}}
+    return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
 
 
 @router.post("/demo-modal/submit", response_class=HTMLResponse)
@@ -80,13 +80,13 @@ async def demo_modal_submit(request: Request):
     """Handle demo modal form submission and close modal with a toast."""
 
     form = await request.form()
-    name = (form.get("name") or "there").strip()
-    message = (form.get("message") or "").strip()
+    name = str(form.get("name") or "there").strip()
+    message = str(form.get("message") or "").strip()
     locale = get_request_locale(request)
     body = translate(locale, "toast.thanks", name=name)
     if message:
         body = f"{body} {translate(locale, 'toast.note_received', message=message)}"
-    trigger = {
+    hx_trigger = {
         "closeModal": True,
         "toast": {
             "title": translate(locale, "toast.submitted_title"),
@@ -94,21 +94,21 @@ async def demo_modal_submit(request: Request):
             "variant": "success",
         },
     }
-    return Response("", headers={"HX-Trigger": json.dumps(trigger)})
+    return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
 
 
 @router.get("/demo-toast", response_class=HTMLResponse)
 async def demo_toast(request: Request):
     """Simple endpoint that triggers a toast notification."""
     locale = get_request_locale(request)
-    trigger = {
+    hx_trigger = {
         "toast": {
             "title": translate(locale, "toast.signed_in_title"),
             "body": translate(locale, "toast.welcome_back_demo"),
             "variant": "success",
         }
     }
-    return Response("", headers={"HX-Trigger": json.dumps(trigger)})
+    return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
 
 
 @router.get("/application-delete", response_class=HTMLResponse)
@@ -121,14 +121,14 @@ async def application_delete_modal(
 ):
     locale = get_request_locale(request)
     if not app_id:
-        trigger = {
+        hx_trigger = {
             "toast": {
                 "title": translate(locale, "applications.detail.delete_error_title"),
                 "body": translate(locale, "applications.detail.delete_error_body"),
                 "variant": "warning",
             }
         }
-        return Response("", headers={"HX-Trigger": json.dumps(trigger)})
+        return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
 
     modal_html = templates.get_template("fragments/application_delete_modal.html").render(
         request=request,
@@ -136,8 +136,8 @@ async def application_delete_modal(
         app_name=app_name,
         client_id=client_id,
     )
-    trigger = {"modal": {"html": modal_html}}
-    return Response("", headers={"HX-Trigger": json.dumps(trigger)})
+    hx_trigger = {"modal": {"html": modal_html}}
+    return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
 
 
 @router.get("/client-secret", response_class=HTMLResponse)
@@ -149,14 +149,14 @@ async def client_secret_modal(
 ):
     locale = get_request_locale(request)
     if not client_id:
-        trigger = {
+        hx_trigger = {
             "toast": {
                 "title": translate(locale, "applications.detail.client_secret_modal.missing_title"),
                 "body": translate(locale, "applications.detail.client_secret_modal.missing_body"),
                 "variant": "warning",
             }
         }
-        return Response("", headers={"HX-Trigger": json.dumps(trigger)})
+        return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
 
     secret_payload = await service.get_client_secret(client_id)
     if not isinstance(secret_payload, dict):
@@ -191,8 +191,8 @@ async def client_secret_modal(
         client_secret_payload=secret_payload,
         rotated_secrets=rotated_secrets,
     )
-    trigger = {"modal": {"html": modal_html}}
-    return Response("", headers={"HX-Trigger": json.dumps(trigger)})
+    hx_trigger = {"modal": {"html": modal_html}}
+    return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
 
 
 @router.get("/client-secret/edit", response_class=HTMLResponse)
@@ -203,7 +203,7 @@ async def client_secret_edit_modal(
 ):
     locale = get_request_locale(request)
     if not client_id:
-        trigger = {
+        hx_trigger = {
             "toast": {
                 "title": translate(
                     locale, "applications.detail.client_secret_edit_modal.missing_title"
@@ -214,7 +214,7 @@ async def client_secret_edit_modal(
                 "variant": "warning",
             }
         }
-        return Response("", headers={"HX-Trigger": json.dumps(trigger)})
+        return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
 
     today = datetime.now().date()
     min_expiry_date = today.isoformat()
@@ -226,8 +226,8 @@ async def client_secret_edit_modal(
         min_expiry_date=min_expiry_date,
         max_expiry_date=max_expiry_date,
     )
-    trigger = {"modal": {"html": modal_html}}
-    return Response("", headers={"HX-Trigger": json.dumps(trigger)})
+    hx_trigger = {"modal": {"html": modal_html}}
+    return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
 
 
 @router.post("/client-secret/rotated/delete", response_class=HTMLResponse)
@@ -237,22 +237,21 @@ async def client_secret_rotated_delete(
     service: AdminService = Depends(get_admin_service),
 ):
     form = await request.form()
-    client_id = (form.get("client_id") or "").strip()
-    paths = [value for value in form.getlist("path") if value]
+    client_id = str(form.get("client_id") or "").strip()
+    paths = [str(value) for value in form.getlist("path") if value]
     locale = get_request_locale(request)
-
     if not client_id:
-        trigger = {
+        hx_trigger = {
             "toast": {
                 "title": translate(locale, "applications.detail.client_secret_modal.missing_title"),
                 "body": translate(locale, "applications.detail.client_secret_modal.missing_body"),
                 "variant": "warning",
             }
         }
-        return Response("", headers={"HX-Trigger": json.dumps(trigger)})
+        return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
 
     if not paths:
-        trigger = {
+        hx_trigger = {
             "toast": {
                 "title": translate(
                     locale, "applications.detail.client_secret_modal.remove_missing_title"
@@ -263,12 +262,12 @@ async def client_secret_rotated_delete(
                 "variant": "warning",
             }
         }
-        return Response("", headers={"HX-Trigger": json.dumps(trigger)})
+        return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
 
     try:
         await service.delete_rotated_client_secrets(client_id, paths)
     except Exception:  # noqa: BLE001
-        trigger = {
+        hx_trigger = {
             "toast": {
                 "title": translate(
                     locale, "applications.detail.client_secret_modal.remove_failed_title"
@@ -279,21 +278,21 @@ async def client_secret_rotated_delete(
                 "variant": "danger",
             }
         }
-        return Response("", headers={"HX-Trigger": json.dumps(trigger)})
+        return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
 
-    trigger = {
+    trigger: dict[str, object] = {
         "closeModal": True,
         "toast": {
             "title": translate(
-                locale, "applications.detail.client_secret_modal.remove_success_title"
+                locale, "applications.detail.client_secret_modal.remove_success_title",
             ),
             "body": translate(
-                locale, "applications.detail.client_secret_modal.remove_success_body"
+                locale, "applications.detail.client_secret_modal.remove_success_body",
             ),
             "variant": "success",
         },
     }
-    return Response("", headers={"HX-Trigger": json.dumps(trigger)})
+    return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
 
 
 @router.post("/client-secret/edit", response_class=HTMLResponse)
@@ -303,14 +302,14 @@ async def client_secret_edit_submit(
     service: AdminService = Depends(get_admin_service),
 ):
     form = await request.form()
-    client_id = (form.get("client_id") or "").strip()
-    action = (form.get("action") or "").strip()
-    description = (form.get("description") or "").strip()
-    expire_date_raw = (form.get("expire_date") or "").strip()
+    client_id = str(form.get("client_id") or "").strip()
+    action = str(form.get("action") or "").strip()
+    description = str(form.get("description") or "").strip()
+    expire_date_raw = str(form.get("expire_date") or "").strip()
     locale = get_request_locale(request)
 
     if not client_id:
-        trigger = {
+        hx_trigger = {
             "toast": {
                 "title": translate(
                     locale, "applications.detail.client_secret_edit_modal.missing_title"
@@ -321,10 +320,10 @@ async def client_secret_edit_submit(
                 "variant": "warning",
             }
         }
-        return Response("", headers={"HX-Trigger": json.dumps(trigger)})
+        return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
 
     if action not in {"regenerate", "rotate"}:
-        trigger = {
+        hx_trigger = {
             "toast": {
                 "title": translate(
                     locale, "applications.detail.client_secret_edit_modal.invalid_action_title"
@@ -335,13 +334,13 @@ async def client_secret_edit_submit(
                 "variant": "warning",
             }
         }
-        return Response("", headers={"HX-Trigger": json.dumps(trigger)})
+        return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
 
     rotated_secret_expired_at = 0
 
     if action == "rotate":
         if not description:
-            trigger = {
+            hx_trigger = {
                 "toast": {
                     "title": translate(
                         locale,
@@ -354,10 +353,10 @@ async def client_secret_edit_submit(
                     "variant": "warning",
                 }
             }
-            return Response("", headers={"HX-Trigger": json.dumps(trigger)})
+            return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
 
         if not expire_date_raw:
-            trigger = {
+            hx_trigger = {
                 "toast": {
                     "title": translate(
                         locale, "applications.detail.client_secret_edit_modal.missing_expiry_title"
@@ -368,12 +367,12 @@ async def client_secret_edit_submit(
                     "variant": "warning",
                 }
             }
-            return Response("", headers={"HX-Trigger": json.dumps(trigger)})
+            return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
 
         try:
             parsed_date = date.fromisoformat(expire_date_raw)
         except ValueError:
-            trigger = {
+            hx_trigger = {
                 "toast": {
                     "title": translate(
                         locale, "applications.detail.client_secret_edit_modal.invalid_expiry_title"
@@ -384,12 +383,12 @@ async def client_secret_edit_submit(
                     "variant": "warning",
                 }
             }
-            return Response("", headers={"HX-Trigger": json.dumps(trigger)})
+            return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
 
         today = date.today()
         max_expiry_date = today + timedelta(days=89)
         if parsed_date <= today or parsed_date >= max_expiry_date:
-            trigger = {
+            hx_trigger = {
                 "toast": {
                     "title": translate(
                         locale, "applications.detail.client_secret_edit_modal.invalid_expiry_title"
@@ -400,7 +399,7 @@ async def client_secret_edit_submit(
                     "variant": "warning",
                 }
             }
-            return Response("", headers={"HX-Trigger": json.dumps(trigger)})
+            return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
 
         expire_dt = datetime.combine(parsed_date, time(23, 59, 59))
         rotated_secret_expired_at = int(expire_dt.timestamp())
@@ -417,7 +416,7 @@ async def client_secret_edit_submit(
     try:
         await service.update_client_secret(client_id, payload)
     except Exception:  # noqa: BLE001
-        trigger = {
+        hx_trigger = {
             "toast": {
                 "title": translate(
                     locale, "applications.detail.client_secret_edit_modal.submit_failed_title"
@@ -428,24 +427,24 @@ async def client_secret_edit_submit(
                 "variant": "danger",
             }
         }
-        return Response("", headers={"HX-Trigger": json.dumps(trigger)})
+        return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
 
     success_key = (
         "applications.detail.client_secret_edit_modal.submit_success_regenerate"
         if action == "regenerate"
         else "applications.detail.client_secret_edit_modal.submit_success_rotate"
     )
-    trigger = {
+    success_trigger: dict[str, object] = {
         "closeModal": True,
         "toast": {
             "title": translate(
-                locale, "applications.detail.client_secret_edit_modal.submit_success_title"
+                locale, "applications.detail.client_secret_edit_modal.submit_success_title",
             ),
             "body": translate(locale, success_key),
             "variant": "success",
         },
     }
-    return Response("", headers={"HX-Trigger": json.dumps(trigger)})
+    return Response("", headers={"HX-Trigger": json.dumps(success_trigger)})
 
 
 @router.get("/{fragment_path:path}", response_class=HTMLResponse)

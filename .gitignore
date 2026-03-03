@@ -8,3 +8,8 @@ node_modules/
 .pytest_cache/
 .coverage
 .DS_Store
+.venv312/
+.mypy_cache/
+.pyre/
+.pytype/
+.pyre_check/

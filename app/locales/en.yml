@@ -59,9 +59,42 @@ applications:
     application_url_placeholder: "https://example.gc.ca"
     redirect_url_placeholder: "https://example.gc.ca/callback"
     redirect_url_help: "One URL per line."
+    scopes_help: "openid is mandatory by default. Available optional scopes: profile, email, phone, language."
     pkce_help: "Require PKCE verification."
     owners_help: "Owners are set to your user ID for now."
     placeholder_note: "Submitting will create the application in Verify."
+    labels:
+      client_type: "Client type"
+      client_auth_method: "Client authentication method"
+      post_logout_redirect_uris: "Post-logout redirect URIs"
+      logout_uri: "Logout URI"
+      logout_method: "Logout method"
+      scopes: "Requested scopes"
+      jwks_uri: "JWKS URI"
+    client_type:
+      confidential: "Confidential"
+      public: "Public"
+    client_auth_method:
+      choose: "Choose a client authentication method"
+    post_logout_redirect_placehoder: "https://example.gc.ca/logout-callback"
+    post_logout_redirect_help: "One URL per line."
+    logout_uri_placeholder: "https://example.gc.ca/logout"
+    logout_method:
+      none: "None"
+      back_channel: "Back-channel logout"
+      front_channel: "Front-channel logout"
+    jwks_uri_placeholder: "https://example.gc.ca/.well-known/jwks.json"
+    jwks_uri_help: "Provide the JWKS URI for private_key_jwt authentication."
+    private_key_jwt:
+      title: "private_key_jwt settings"
+    single_logout:
+      title: "Single Logout"
+    sections:
+      application_info: "Application Info"
+      oidc_settings: "OIDC Settings"
+      basic_oidc: "Basic OIDC"
+      client_settings: "Client Settings"
+      single_logout: "Single Logout"
     submit: "Create"
     toast_success_title: "Application created"
     toast_success_body: "Your application is ready."

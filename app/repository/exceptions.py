@@ -1,4 +1,5 @@
 """HTTP exceptions for IBM Verify API client."""
+
 from typing import Any, Dict, Optional
 
 

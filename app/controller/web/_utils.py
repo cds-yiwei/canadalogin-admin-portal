@@ -1,8 +1,15 @@
 """Web controller utilities - re-exports shared utilities with web-specific setup."""
+
 from pathlib import Path
 
 from fastapi.templating import Jinja2Templates
-from app.utils.i18n import register_i18n, get_request_locale, match_supported_locale, sanitize_next_url, translate
+from app.utils.i18n import (
+    register_i18n,
+    get_request_locale,
+    match_supported_locale,
+    sanitize_next_url,
+    translate,
+)
 from app.config import get_settings
 
 # Import all shared utilities

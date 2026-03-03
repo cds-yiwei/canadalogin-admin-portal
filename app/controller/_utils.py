@@ -1,11 +1,16 @@
 """Shared utility functions for web and API controllers."""
+
 from typing import Any, Dict, List
 from ipaddress import ip_address
 
 from pydantic import TypeAdapter, ValidationError
 from loguru import logger
 
-from app.controller.schemas import ApplicationListData, ApplicationCreation, ApplicationAuditTrailResponse
+from app.controller.schemas import (
+    ApplicationListData,
+    ApplicationCreation,
+    ApplicationAuditTrailResponse,
+)
 
 
 application_list_adapter = TypeAdapter(list[ApplicationListData])
@@ -13,7 +18,7 @@ application_list_adapter = TypeAdapter(list[ApplicationListData])
 
 def _extract_application_id(raw_app: dict) -> str | None:
     """Extract application ID from raw API response.
-    
+
     Tries multiple field names and patterns to extract the ID.
     """
     href = (((raw_app or {}).get("_links") or {}).get("self") or {}).get("href")
@@ -78,7 +83,7 @@ def _normalize_epoch_seconds(raw_value: int | None) -> int | None:
         return None
     if value <= 0:
         return None
-    if value > 10 ** 11:
+    if value > 10**11:
         return value // 1000
     return value
 
@@ -139,7 +144,7 @@ def _normalize_checkbox(raw_value: str | None) -> str:
 
 def _build_application_creation_payload(form_data: dict, owners: List[str]) -> dict:
     """Build IBM Verify application creation payload from form data.
-    
+
     Handles OIDC configuration, client types, and various authentication methods.
     """
     name = str(form_data.get("name") or "").strip()
@@ -148,7 +153,9 @@ def _build_application_creation_payload(form_data: dict, owners: List[str]) -> d
     application_url = str(form_data.get("application_url") or "").strip()
     redirect_uris = _normalize_redirect_uris(form_data.get("redirect_uris"))
     # prefer explicit pkce value, fall back to forced value when client_type enforces it
-    pkce_enabled = _normalize_checkbox(form_data.get("pkce_enabled") or form_data.get("pkce_enabled_force"))
+    pkce_enabled = _normalize_checkbox(
+        form_data.get("pkce_enabled") or form_data.get("pkce_enabled_force")
+    )
 
     # New minimal OIDC fields (normalized)
     client_type = str(form_data.get("client_type") or "").strip() or None
@@ -181,12 +188,12 @@ def _build_application_creation_payload(form_data: dict, owners: List[str]) -> d
                 "deProvAction": "delete",
                 "adoptionPolicy": {
                     "matchingAttributes": [],
-                    "remediationPolicy": {"policy": "NONE"}
+                    "remediationPolicy": {"policy": "NONE"},
                 },
-                "gracePeriod": 30
+                "gracePeriod": 30,
             },
             "attributeMappings": [],
-            "reverseAttributeMappings": []
+            "reverseAttributeMappings": [],
         },
         "attributeMappings": [],
         "providers": {
@@ -226,7 +233,7 @@ def _build_application_creation_payload(form_data: dict, owners: List[str]) -> d
                         "logoutOption": "none",
                         "sessionRequired": False,
                         "requestUris": [],
-                        "allowedClientAssertionVerificationKeys": []
+                        "allowedClientAssertionVerificationKeys": [],
                     },
                     "generateRefreshToken": "true",
                     "renewRefreshToken": "true",
@@ -265,28 +272,38 @@ def _build_application_creation_payload(form_data: dict, owners: List[str]) -> d
     # inject minimal extra fields if provided
     if client_type == "public":
         payload["providers"]["oidc"]["properties"]["doNotGenerateClientSecret"] = "true"
-        payload["providers"]["oidc"]["properties"]["additionalConfig"]["clientAuthMethod"] = "default"
+        payload["providers"]["oidc"]["properties"]["additionalConfig"][
+            "clientAuthMethod"
+        ] = "default"
         payload["providers"]["oidc"]["requirePkceVerification"] = "true"
     elif client_type == "confidential":
         if client_auth_method and client_auth_method != "default":
-            payload["providers"]["oidc"]["properties"]["additionalConfig"]["clientAuthMethod"] = client_auth_method
+            payload["providers"]["oidc"]["properties"]["additionalConfig"][
+                "clientAuthMethod"
+            ] = client_auth_method
         if client_auth_method and client_auth_method == "private_key_jwt" and jwks_uri_value:
             payload["providers"]["oidc"]["properties"]["jwksUri"] = jwks_uri_value
     # single logout options
     if logout_method:
-        payload["providers"]["oidc"]["properties"]["additionalConfig"]["logoutOption"] = logout_method
-        payload["providers"]["oidc"]["properties"]["additionalConfig"]["sessionRequired"] = True if logout_method != "none" else False
+        payload["providers"]["oidc"]["properties"]["additionalConfig"][
+            "logoutOption"
+        ] = logout_method
+        payload["providers"]["oidc"]["properties"]["additionalConfig"]["sessionRequired"] = (
+            True if logout_method != "none" else False
+        )
     if logout_method != "none" and logout_uri:
         payload["providers"]["oidc"]["properties"]["additionalConfig"]["logoutURI"] = logout_uri
     if logout_method != "none" and post_logout_redirect_uris:
-        payload["providers"]["oidc"]["properties"]["additionalConfig"]["logoutRedirectURIs"] = post_logout_redirect_uris
+        payload["providers"]["oidc"]["properties"]["additionalConfig"][
+            "logoutRedirectURIs"
+        ] = post_logout_redirect_uris
 
     return ApplicationCreation.model_validate(payload).model_dump(exclude_none=True)
 
 
 def _parse_audit_trail(raw_payload: Any) -> list[dict[str, Any]]:
     """Parse and transform audit trail response from IBM Verify API.
-    
+
     Extracts hits, masks sensitive data (emails, IPs), and normalizes timestamps.
     """
     parsed_payload: ApplicationAuditTrailResponse | None = None
@@ -316,15 +333,17 @@ def _parse_audit_trail(raw_payload: Any) -> list[dict[str, Any]]:
         country = str(geoip.country_name or geoip.country_iso_code or "").strip()
         username_display = _mask_email(username_raw) if username_known else ""
         origin_display = _mask_ip(origin_raw)
-        rows.append({
-            "username": username_raw,
-            "username_display": username_display,
-            "username_known": username_known,
-            "origin": origin_raw,
-            "origin_display": origin_display,
-            "ip_version": ip_version,
-            "result": result_raw,
-            "time_seconds": time_seconds,
-            "country": country,
-        })
+        rows.append(
+            {
+                "username": username_raw,
+                "username_display": username_display,
+                "username_known": username_known,
+                "origin": origin_raw,
+                "origin_display": origin_display,
+                "ip_version": ip_version,
+                "result": result_raw,
+                "time_seconds": time_seconds,
+                "country": country,
+            }
+        )
     return rows

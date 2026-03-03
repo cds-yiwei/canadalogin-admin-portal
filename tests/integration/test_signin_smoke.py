@@ -1,4 +1,5 @@
 import pathlib
+
 TEMPLATES_DIR = pathlib.Path(__file__).resolve().parents[2] / "app" / "templates" / "auth"
 LOGIN_TEMPLATE = TEMPLATES_DIR / "login.html"
 FRAGMENT = TEMPLATES_DIR / "_signin_fragment.html"

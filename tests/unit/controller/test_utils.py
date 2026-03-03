@@ -1,5 +1,3 @@
-import pytest
-
 from app.controller.web._utils import _build_application_creation_payload
 
 
@@ -22,8 +20,19 @@ def test_build_application_creation_payload_minimal():
 
     assert payload["name"] == "My App"
     # client auth method placed in additionalConfig
-    assert payload["providers"]["oidc"]["properties"]["additionalConfig"]["clientAuthMethod"] == "client_secret_basic"
+    assert (
+        payload["providers"]["oidc"]["properties"]["additionalConfig"]["clientAuthMethod"]
+        == "client_secret_basic"
+    )
     # logout fields
-    assert payload["providers"]["oidc"]["properties"]["additionalConfig"]["logoutURI"] == "https://example.gc.ca/logout"
-    assert payload["providers"]["oidc"]["properties"]["additionalConfig"]["logoutRedirectURIs"] == ["https://example.gc.ca/logout-callback"]
-    assert payload["providers"]["oidc"]["properties"]["additionalConfig"]["logoutOption"] == "back_channel"
+    assert (
+        payload["providers"]["oidc"]["properties"]["additionalConfig"]["logoutURI"]
+        == "https://example.gc.ca/logout"
+    )
+    assert payload["providers"]["oidc"]["properties"]["additionalConfig"]["logoutRedirectURIs"] == [
+        "https://example.gc.ca/logout-callback"
+    ]
+    assert (
+        payload["providers"]["oidc"]["properties"]["additionalConfig"]["logoutOption"]
+        == "back_channel"
+    )

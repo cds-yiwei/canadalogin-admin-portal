@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 from fastapi import FastAPI, Request
@@ -7,13 +7,13 @@ from loguru import logger
 
 from app.config import Settings
 from app.repository.exceptions import (
-    IBMVerifyAPIError,
     IBMVerifyBadRequest,
     IBMVerifyUnauthorized,
     IBMVerifyForbidden,
     IBMVerifyNotFound,
     IBMVerifyServerError,
 )
+
 
 class IBMVerifyAdminClient:
     def __init__(self, base_url: str, client: AsyncOAuth2Client):
@@ -47,10 +47,11 @@ class IBMVerifyAdminClient:
         exception_class = error_map.get(response.status_code, IBMVerifyServerError)
 
         raise exception_class(
-            message=f"IBM Verify API request failed",
+            message="IBM Verify API request failed",
             status_code=response.status_code,
             response_body=response_body,
         )
+
     async def fetch_users(self) -> List[Dict[str, Any]]:
         response = await self._client.get(f"{self._base_url}/v2.0/Users")
         self._handle_response(response)
@@ -61,18 +62,18 @@ class IBMVerifyAdminClient:
 
     async def search_users_by_name(self, username: str) -> List[Dict[str, Any]]:
         """Search for users by username using the IBM Verify API.
-        
+
         Args:
             username: The username to search for
-            
+
         Returns:
             List of user dictionaries matching the search criteria
         """
         query_params = {
-            'count': 100,
-            'fullText': username,
-            'sortBy': 'name.formatted',
-            'startIndex': 1,
+            "count": 100,
+            "fullText": username,
+            "sortBy": "name.formatted",
+            "startIndex": 1,
         }
         response = await self._client.get(
             f"{self._base_url}/v2.0/Users",
@@ -112,8 +113,8 @@ class IBMVerifyAdminClient:
     async def get_application_total_logins(
         self,
         application_id: str,
-        from_date: str | None = None,
-        to_date: str | None = None,
+        from_date: Optional[str] = None,
+        to_date: Optional[str] = None,
     ) -> Dict[str, Any]:
         now = datetime.now()
         past_24_hours = now - timedelta(hours=24)
@@ -130,8 +131,8 @@ class IBMVerifyAdminClient:
     async def get_application_audit_trail(
         self,
         application_id: str,
-        from_date: str | None = None,
-        to_date: str | None = None,
+        from_date: Optional[str] = None,
+        to_date: Optional[str] = None,
         size: int = 50,
         sort_by: str = "time",
         sort_order: str = "DESC",
@@ -174,7 +175,7 @@ class IBMVerifyAdminClient:
         return response.json()
 
     async def delete_rotated_client_secrets(self, client_id: str, path: List[str]) -> bool:
-        payload = [{'path': p, 'op': 'remove'} for p in path]
+        payload = [{"path": p, "op": "remove"} for p in path]
         response = await self._client.patch(
             f"{self._base_url}/oidc-mgmt/v2.0/clients/{client_id}/secrets",
             json=payload,
@@ -188,6 +189,148 @@ class IBMVerifyAdminClient:
         )
         self._handle_response(response)
         return response.json()
+
+    async def list_groups(self, count: int = 100, start_index: int = 1) -> List[Dict[str, Any]]:
+        """List all groups from IBM Verify.
+
+        Args:
+            count: Number of results to return (default 100)
+            start_index: Starting index for pagination (default 1)
+
+        Returns:
+            List of group dictionaries
+        """
+        query_params = {
+            "count": count,
+            "startIndex": start_index,
+        }
+        response = await self._client.get(
+            f"{self._base_url}/v2.0/Groups",
+            params=query_params,
+        )
+        self._handle_response(response)
+        payload = response.json()
+        if isinstance(payload, list):
+            return payload
+        return payload.get("Resources", [])
+
+    async def search_groups_by_name(self, group_name: str) -> List[Dict[str, Any]]:
+        """Search for groups by name using the IBM Verify API.
+
+        Args:
+            group_name: The group name to search for
+
+        Returns:
+            List of group dictionaries matching the search criteria
+        """
+        query_params = {
+            "count": 100,
+            "fullText": group_name,
+            "sortBy": "displayName",
+            "startIndex": 1,
+        }
+        response = await self._client.get(
+            f"{self._base_url}/v2.0/Groups",
+            params=query_params,
+        )
+        self._handle_response(response)
+        payload = response.json()
+        if isinstance(payload, list):
+            return payload
+        return payload.get("Resources", [])
+
+    async def get_group_by_id(self, group_id: str) -> Dict[str, Any]:
+        """Get a specific group by ID.
+
+        Args:
+            group_id: The group ID
+
+        Returns:
+            Group dictionary with details
+        """
+        response = await self._client.get(f"{self._base_url}/v2.0/Groups/{group_id}")
+        self._handle_response(response)
+        return response.json()
+
+    async def add_user_to_group(self, group_id: str, user_id: str) -> None:
+        """Add a user to a group.
+
+        Args:
+            group_id: The group ID
+            user_id: The user ID to add
+
+        Raises:
+            IBMVerifyAPIError: If the operation fails
+        """
+        payload = {
+            "schemas": ["urn:ietf:params:scim:api:messages:2.0:PatchOp"],
+            "Operations": [
+                {
+                    "op": "add",
+                    "path": "members",
+                    "value": [{"type": "user", "value": user_id}],
+                },
+                {
+                    "op": "add",
+                    "path": "urn:ietf:params:scim:schemas:extension:ibm:2.0:Notification:notifyType",
+                    "value": "NONE",
+                },
+            ],
+        }
+        response = await self._client.patch(
+            f"{self._base_url}/v2.0/Groups/{group_id}",
+            json=payload,
+        )
+        self._handle_response(response)
+
+    async def remove_user_from_group(self, group_id: str, user_id: str) -> None:
+        """Remove a user from a group.
+
+        Args:
+            group_id: The group ID
+            user_id: The user ID to remove
+
+        Raises:
+            IBMVerifyAPIError: If the operation fails
+        """
+        payload = {
+            "schemas": ["urn:ietf:params:scim:api:messages:2.0:PatchOp"],
+            "Operations": [
+                {
+                    "op": "remove",
+                    "path": f'members[value eq "{user_id}"]',
+                }
+            ],
+        }
+        response = await self._client.patch(
+            f"{self._base_url}/v2.0/Groups/{group_id}",
+            json=payload,
+        )
+        self._handle_response(response)
+
+    async def is_user_in_group(self, group_id: str, user_id: str) -> bool:
+        """Check if a user is a member of a group.
+
+        Args:
+            group_id: The group ID
+            user_id: The user ID to check
+
+        Returns:
+            bool: True if user is in group, False otherwise
+
+        Raises:
+            IBMVerifyAPIError: If the operation fails
+        """
+        try:
+            group = await self.get_group_by_id(group_id)
+            members = group.get("members", [])
+            for member in members:
+                if member.get("value") == user_id:
+                    return True
+            return False
+        except Exception:
+            # If group not found or other error, user not in group
+            return False
 
     async def aclose(self) -> None:
         await self._client.aclose()

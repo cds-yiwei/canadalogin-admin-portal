@@ -284,10 +284,12 @@ async def client_secret_rotated_delete(
         "closeModal": True,
         "toast": {
             "title": translate(
-                locale, "applications.detail.client_secret_modal.remove_success_title",
+                locale,
+                "applications.detail.client_secret_modal.remove_success_title",
             ),
             "body": translate(
-                locale, "applications.detail.client_secret_modal.remove_success_body",
+                locale,
+                "applications.detail.client_secret_modal.remove_success_body",
             ),
             "variant": "success",
         },
@@ -438,14 +440,14 @@ async def client_secret_edit_submit(
         "closeModal": True,
         "toast": {
             "title": translate(
-                locale, "applications.detail.client_secret_edit_modal.submit_success_title",
+                locale,
+                "applications.detail.client_secret_edit_modal.submit_success_title",
             ),
             "body": translate(locale, success_key),
             "variant": "success",
         },
     }
     return Response("", headers={"HX-Trigger": json.dumps(success_trigger)})
-
 
 
 @router.get("/add-owner-modal", response_class=HTMLResponse)
@@ -456,6 +458,7 @@ async def add_owner_modal(request: Request, _user: dict = Depends(require_web_us
     )
     hx_trigger = {"modal": {"html": modal_html}}
     return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
+
 
 @router.get("/{fragment_path:path}", response_class=HTMLResponse)
 async def render_fragment(fragment_path: str, request: Request):

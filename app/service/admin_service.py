@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from app.core.models.user import User
 from app.core.roles import Role
@@ -46,16 +46,16 @@ class AdminService:
     async def get_application_total_logins(
         self,
         application_id: str,
-        from_date: str | None = None,
-        to_date: str | None = None,
+        from_date: Optional[str] = None,
+        to_date: Optional[str] = None,
     ) -> Dict[str, Any]:
         return await self._client.get_application_total_logins(application_id, from_date, to_date)
 
     async def get_application_audit_trail(
         self,
         application_id: str,
-        from_date: str | None = None,
-        to_date: str | None = None,
+        from_date: Optional[str] = None,
+        to_date: Optional[str] = None,
         size: int = 50,
         sort_by: str = "time",
         sort_order: str = "DESC",
@@ -80,3 +80,27 @@ class AdminService:
 
     async def get_application_entitlements(self, application_id: str) -> Dict[str, Any]:
         return await self._client.get_application_entitlements(application_id)
+
+    async def list_groups(self, count: int = 100, start_index: int = 1) -> List[Dict[str, Any]]:
+        """List all groups."""
+        return await self._client.list_groups(count, start_index)
+
+    async def search_groups_by_name(self, group_name: str) -> List[Dict[str, Any]]:
+        """Search for groups by name."""
+        return await self._client.search_groups_by_name(group_name)
+
+    async def get_group_by_id(self, group_id: str) -> Dict[str, Any]:
+        """Get a specific group by ID."""
+        return await self._client.get_group_by_id(group_id)
+
+    async def add_user_to_group(self, group_id: str, user_id: str) -> None:
+        """Add a user to a group."""
+        await self._client.add_user_to_group(group_id, user_id)
+
+    async def remove_user_from_group(self, group_id: str, user_id: str) -> None:
+        """Remove a user from a group."""
+        await self._client.remove_user_from_group(group_id, user_id)
+
+    async def is_user_in_group(self, group_id: str, user_id: str) -> bool:
+        """Check if a user is a member of a group."""
+        return await self._client.is_user_in_group(group_id, user_id)

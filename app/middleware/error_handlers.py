@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 
 from app.repository.exceptions import IBMVerifyAPIError
 
+
 def add_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(IBMVerifyAPIError)
     async def ibm_verify_api_error_handler(request: Request, exc: IBMVerifyAPIError):

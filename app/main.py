@@ -38,12 +38,14 @@ def create_app() -> FastAPI:
             await init_admin_api_client(app, settings)
             await init_user_http_client(app)
             import os
+
             if not os.environ.get("SKIP_SESSION_STORE"):
                 await init_session_store(app, settings)
 
             yield
         finally:
             import os
+
             if not os.environ.get("SKIP_SESSION_STORE"):
                 await close_session_store(app)
             await close_user_http_client(app)

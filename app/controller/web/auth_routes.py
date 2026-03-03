@@ -4,7 +4,6 @@ from loguru import logger
 
 from app.auth.oidc import get_verify_oidc_client
 from app.auth.role_mapper import map_claims_to_roles
-from app.dependencies.auth import require_web_user
 from app.dependencies.policies import get_authorization_service
 from app.utils.i18n import get_request_locale, translate
 from app.controller.web._utils import templates, settings
@@ -58,7 +57,9 @@ async def oidc_callback(request: Request, authz_service=Depends(get_authorizatio
         user = {
             "id": userinfo.get("sub") or userinfo.get("id") or userinfo.get("email") or "unknown",
             "email": userinfo.get("email", ""),
-            "display_name": userinfo.get("name") or userinfo.get("preferred_username") or userinfo.get("email", ""),
+            "display_name": userinfo.get("name")
+            or userinfo.get("preferred_username")
+            or userinfo.get("email", ""),
             "roles": [role.value for role in roles],
             "permissions": permissions,
         }
@@ -94,7 +95,6 @@ async def logout(request: Request):
 
 @router.get("/locale")
 async def set_locale(request: Request, lang: str, next: str | None = None):
-    locale = get_request_locale(request)
     # reuse match_supported_locale and sanitize_next_url from utils if needed
     from app.utils.i18n import match_supported_locale, sanitize_next_url
 

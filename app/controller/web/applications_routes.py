@@ -14,23 +14,27 @@ from app.controller.web._utils import (
     _parse_application_list,
     _extract_application_id,
     _build_application_creation_payload,
-    _normalize_epoch_seconds,
 )
 from app.controller.schemas import (
     ApplicationDetailData,
     ApplicationTotalLoginsResponse,
-    ApplicationAuditTrailResponse,
 )
 
 router = APIRouter()
 
 
 @router.get("/", response_class=HTMLResponse)
-async def home(request: Request, user: dict = Depends(require_web_user), service: UserService = Depends(get_user_service)):
+async def home(
+    request: Request,
+    user: dict = Depends(require_web_user),
+    service: UserService = Depends(get_user_service),
+):
     applications = await service.get_applications()
     total_applications = applications.get("totalCount") if isinstance(applications, dict) else None
     if total_applications is None:
-        embedded_apps = ((applications or {}).get("_embedded", {}) if isinstance(applications, dict) else {})
+        embedded_apps = (
+            (applications or {}).get("_embedded", {}) if isinstance(applications, dict) else {}
+        )
         total_applications = len(embedded_apps.get("applications", []) or [])
 
     session = getattr(request, "session", {}) or {}
@@ -51,7 +55,11 @@ async def home(request: Request, user: dict = Depends(require_web_user), service
 
 
 @router.get("/profile", response_class=HTMLResponse)
-async def profile_page(request: Request, user: dict = Depends(require_web_user), service: UserService = Depends(get_user_service)):
+async def profile_page(
+    request: Request,
+    user: dict = Depends(require_web_user),
+    service: UserService = Depends(get_user_service),
+):
     profile = await service.get_profile()
     userinfo = await service.get_userinfo()
     applications = await service.get_applications()
@@ -75,7 +83,11 @@ async def profile_page(request: Request, user: dict = Depends(require_web_user),
 
 
 @router.get("/applications", response_class=HTMLResponse)
-async def applications_page(request: Request, user: dict = Depends(require_web_user), service: UserService = Depends(get_user_service)):
+async def applications_page(
+    request: Request,
+    user: dict = Depends(require_web_user),
+    service: UserService = Depends(get_user_service),
+):
     applications = await service.get_applications()
     embedded = applications.get("_embedded", {}) if isinstance(applications, dict) else {}
     raw_items = embedded.get("applications", []) or []
@@ -120,14 +132,21 @@ async def application_create_page(request: Request, user: dict = Depends(require
             "breadcrumbs": [
                 {"href": "/", "label": translate(locale, "breadcrumbs.dashboard")},
                 {"href": "/applications", "label": translate(locale, "breadcrumbs.applications")},
-                {"href": "/applications/new", "label": translate(locale, "applications.create.title")},
+                {
+                    "href": "/applications/new",
+                    "label": translate(locale, "applications.create.title"),
+                },
             ],
         },
     )
 
 
 @router.post("/applications/new")
-async def application_create_submit(request: Request, user: dict = Depends(require_web_user), service: AdminService = Depends(get_admin_service)):
+async def application_create_submit(
+    request: Request,
+    user: dict = Depends(require_web_user),
+    service: AdminService = Depends(get_admin_service),
+):
     locale = get_request_locale(request)
     form_data = await request.form()
     owner_id = (user or {}).get("id")
@@ -136,7 +155,6 @@ async def application_create_submit(request: Request, user: dict = Depends(requi
         owner_value = str(value).strip()
         if owner_value and owner_value not in owners:
             owners.append(owner_value)
-
 
     payload = _build_application_creation_payload(dict(form_data), owners)
 
@@ -149,7 +167,9 @@ async def application_create_submit(request: Request, user: dict = Depends(requi
             "variant": "success",
         }
         if created_id:
-            return RedirectResponse(url=f"/applications/{created_id}", status_code=status.HTTP_302_FOUND)
+            return RedirectResponse(
+                url=f"/applications/{created_id}", status_code=status.HTTP_302_FOUND
+            )
         return RedirectResponse(url="/applications", status_code=status.HTTP_302_FOUND)
     except Exception as exc:  # noqa: BLE001
         logger.exception("Application create failed: {}", exc)
@@ -162,7 +182,12 @@ async def application_create_submit(request: Request, user: dict = Depends(requi
 
 
 @router.get("/applications/{application_id}", response_class=HTMLResponse)
-async def application_detail_page(request: Request, application_id: str, user: dict = Depends(require_web_user), service: AdminService = Depends(get_admin_service)):
+async def application_detail_page(
+    request: Request,
+    application_id: str,
+    user: dict = Depends(require_web_user),
+    service: AdminService = Depends(get_admin_service),
+):
     application = await service.get_application_detail(application_id)
     if not isinstance(application, dict):
         application = {}
@@ -180,7 +205,9 @@ async def application_detail_page(request: Request, application_id: str, user: d
         parsed_application.name.strip() if parsed_application and parsed_application.name else ""
     ) or application_id
     application_payload = (
-        parsed_application.model_dump(by_alias=True) if parsed_application is not None else application
+        parsed_application.model_dump(by_alias=True)
+        if parsed_application is not None
+        else application
     )
     return templates.TemplateResponse(
         "applications/detail.html",
@@ -202,7 +229,12 @@ async def application_detail_page(request: Request, application_id: str, user: d
 
 
 @router.delete("/applications/{application_id}")
-async def delete_application(request: Request, application_id: str, _user: dict = Depends(require_web_user), service: AdminService = Depends(get_admin_service)):
+async def delete_application(
+    request: Request,
+    application_id: str,
+    _user: dict = Depends(require_web_user),
+    service: AdminService = Depends(get_admin_service),
+):
     locale = get_request_locale(request)
     try:
         await service.delete_application(application_id)
@@ -211,7 +243,9 @@ async def delete_application(request: Request, application_id: str, _user: dict 
             "body": translate(locale, "applications.detail.delete_success_body"),
             "variant": "success",
         }
-        return Response(status_code=status.HTTP_204_NO_CONTENT, headers={"HX-Redirect": "/applications"})
+        return Response(
+            status_code=status.HTTP_204_NO_CONTENT, headers={"HX-Redirect": "/applications"}
+        )
     except Exception as exc:  # noqa: BLE001
         logger.exception("Application delete failed: {}", exc)
         request.session["flash_toast"] = {
@@ -219,7 +253,10 @@ async def delete_application(request: Request, application_id: str, _user: dict 
             "body": translate(locale, "applications.detail.delete_error_body"),
             "variant": "warning",
         }
-        return Response(status_code=status.HTTP_200_OK, headers={"HX-Redirect": f"/applications/{application_id}"})
+        return Response(
+            status_code=status.HTTP_200_OK,
+            headers={"HX-Redirect": f"/applications/{application_id}"},
+        )
 
 
 @router.get("/applications/{application_id}/usage", response_class=HTMLResponse)
@@ -245,7 +282,9 @@ async def application_usage_page(
         logger.warning("Failed to validate application detail payload: {}", exc)
 
     app_name = (
-        parsed_application.name.strip() if parsed_application and parsed_application.name and parsed_application.name.strip() else ""
+        parsed_application.name.strip()
+        if parsed_application and parsed_application.name and parsed_application.name.strip()
+        else ""
     )
 
     total_logins = await service.get_application_total_logins(application_id, from_date, to_date)
@@ -295,7 +334,10 @@ async def application_usage_page(
                 {"href": "/", "label": translate(locale, "breadcrumbs.dashboard")},
                 {"href": "/applications", "label": translate(locale, "breadcrumbs.applications")},
                 {"href": f"/applications/{application_id}", "label": breadcrumb_label},
-                {"href": f"/applications/{application_id}/usage", "label": translate(locale, "applications.actions.usage")},
+                {
+                    "href": f"/applications/{application_id}/usage",
+                    "label": translate(locale, "applications.actions.usage"),
+                },
             ],
         },
     )

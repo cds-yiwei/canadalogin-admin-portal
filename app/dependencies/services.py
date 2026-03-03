@@ -12,10 +12,10 @@ from app.repository.iv_user_client import get_user_api_client
 async def get_admin_service(request: Request) -> AdminService:
     settings = get_settings()
     client = await get_admin_api_client_async(request)
-    gateway = IBMVerifyAdminClient(base_url=settings.ibm_sv_base_url, client=client)
-    return AdminService(gateway)
+    admin_client = IBMVerifyAdminClient(base_url=settings.ibm_sv_base_url, client=client)
+    return AdminService(admin_client)
 
 
 async def get_user_service(request: Request) -> UserService:
-    gateway = await get_user_api_client(request)
-    return UserService(gateway)
+    user_client = await get_user_api_client(request)
+    return UserService(user_client)

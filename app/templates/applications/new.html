@@ -205,7 +205,10 @@ function ownerManager(currentUser = null) {
 </section>
 
 <style>
-  }  
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
   
   /* HTMX Indicator Styles */
   .htmx-indicator {

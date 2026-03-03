@@ -7,7 +7,24 @@
 </div>
 
 <section class="gcds-mb-200">
-  <form class="gcds-stack" style="gap:16px;" action="/applications/new" method="post" x-data="{ clientAuthMethod: 'default', clientType: 'confidential', pkceEnabled: false, logoutMethod: 'none' }" x-init="$nextTick(()=>{ const sel = document.querySelector('select[name=\"client_auth_method\"]'); if(sel) clientAuthMethod = sel.value; const ct = document.querySelector('input[name=\"client_type\"]:checked'); if(ct) clientType = ct.value; if(clientType==='public') pkceEnabled = true; const logoutSel = document.querySelector('select[name=\"logout_method\"]'); if(logoutSel) logoutMethod = logoutSel.value; })" x-effect="if(clientType==='public'){ pkceEnabled = true }" >
+  <!-- Error message container (hidden by default) -->
+  <div id="error-message" class="gcds-mb-200" style="display:none;">
+    <gcds-alert type="danger">
+      <gcds-heading tag="h3">{{ t('applications.create.toast_error_title') }}</gcds-heading>
+      <p id="error-detail"></p>
+    </gcds-alert>
+  </div>
+
+
+  <form
+    class="gcds-stack"
+    style="gap:16px;"
+    id="application-form"
+    hx-post="/api/v1/applications"
+    x-data="{ clientAuthMethod: 'default', clientType: 'confidential', pkceEnabled: false, logoutMethod: 'none' }"
+    x-init="$nextTick(()=>{ const sel = document.querySelector('select[name=\"client_auth_method\"]'); if(sel) clientAuthMethod = sel.value; const ct = document.querySelector('input[name=\"client_type\"]:checked'); if(ct) clientType = ct.value; if(clientType==='public') pkceEnabled = true; const logoutSel = document.querySelector('select[name=\"logout_method\"]'); if(logoutSel) logoutMethod = logoutSel.value; })"
+    x-effect="if(clientType==='public'){ pkceEnabled = true }"
+  >
     <fieldset class="gcds-stack" style="gap:12px;">
       <legend><gcds-heading tag="h2">{{ t('applications.create.sections.application_info') }}</gcds-heading></legend>
       <label class="gcds-stack" style="gap:6px;">
@@ -47,10 +64,6 @@
           <textarea name="redirect_uris" class="gcds-input" rows="3" placeholder="{{ t('applications.create.redirect_url_placeholder') }}"></textarea>
           <gcds-text class="muted">{{ t('applications.create.redirect_url_help') }}</gcds-text>
         </label>
-        <fieldset class="gcds-stack" style="gap:8px;">
-          <legend class="gcds-text">{{ t('applications.create.labels.scopes') }}</legend>
-          <gcds-text class="muted">{{ t('applications.create.scopes_help') }}</gcds-text>
-        </fieldset>
       </div>
       <div class="gcds-stack" style="gap:12px;">
         <gcds-heading tag="h3">{{ t('applications.create.sections.client_settings') }}</gcds-heading>
@@ -112,16 +125,111 @@
       </div>
     </fieldset>
 
+    <fieldset class="gcds-stack" style="gap:8px;">
+      <gcds-heading tag="h3">{{ t('applications.create.labels.scopes') }}</gcds-heading>
+      <gcds-text class="muted" style="white-space: nowrap;">{{ t('applications.create.scopes_help') | replace('openid', '<strong style="color: #333; font-weight: 700;">openid</strong>') | replace('profile', '<strong style="color: #333; font-weight: 700;">profile</strong>') | replace('email', '<strong style="color: #333; font-weight: 700;">email</strong>') | replace('phone', '<strong style="color: #333; font-weight: 700;">phone</strong>') | replace('language', '<strong style="color: #333; font-weight: 700;">language</strong>') | safe }}</gcds-text>
+    </fieldset>
     <gcds-text class="muted">{{ t('applications.create.placeholder_note') }}</gcds-text>
 
     <div style="display:flex; gap:12px;">
       <gcds-button type="link" href="/applications" variant="secondary">
         {{ t('common.cancel') }}
       </gcds-button>
-      <gcds-button type="submit">
-        {{ t('applications.create.submit') }}
+      <gcds-button type="submit" id="submit-button">
+        <span id="button-text">{{ t('applications.create.submit') }}</span>
+        <span id="button-spinner" style="display:none; margin-left:8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="animation:spin 1s linear infinite; display:inline-block;">
+            <circle cx="12" cy="12" r="10" stroke-width="2" stroke-dasharray="15.7" stroke-dashoffset="0"></circle>
+          </svg>
+        </span>
       </gcds-button>
     </div>
   </form>
 </section>
+
+<style>
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+</style>
+
+<script>
+// Handle HTMX form submission responses
+const submitButton = document.getElementById('submit-button');
+const buttonText = document.getElementById('button-text');
+const buttonSpinner = document.getElementById('button-spinner');
+
+// Show loading state on form submission
+document.getElementById('application-form').addEventListener('htmx:beforeRequest', function(event) {
+  submitButton.disabled = true;
+  buttonText.style.display = 'none';
+  buttonSpinner.style.display = 'inline';
+});
+
+// Handle HTMX form submission responses
+document.getElementById('application-form').addEventListener('htmx:afterRequest', function(event) {
+  console.log('HTMX afterRequest event fired');
+  const xhr = event.detail.xhr;
+  if (!xhr) {
+    console.error('No xhr object found');
+    return;
+  }
+  
+  const status = xhr.status;
+  console.log('Response status:', status);
+  console.log('Response text:', xhr.responseText);
+  
+  let response;
+  try {
+    response = JSON.parse(xhr.responseText);
+    console.log('Parsed response:', response);
+  } catch (e) {
+    console.error('Failed to parse response:', e);
+    response = { detail: 'Invalid response format' };
+  }
+  
+  const errorContainer = document.getElementById('error-message');
+  const errorDetail = document.getElementById('error-detail');
+  const submitButton = document.getElementById('submit-button');
+  const form = document.getElementById('application-form');
+  
+  // Prevent default HTMX swapping
+  event.detail.shouldSwap = false;
+  
+  if (status === 201) {
+    console.log('Handling 201 success');
+    // Show success toast and redirect to applications list
+    window.Alpine.store('ui').addToast({
+      title: '{{ t('applications.create.toast_success_title') }}',
+      body: '{{ t('applications.create.toast_success_body') }}',
+      variant: 'success',
+      duration: 4800
+    });
+    // Redirect to applications list after a brief delay
+    setTimeout(() => {
+      window.location.href = '/applications';
+    }, 500);
+  } else if (status === 400) {
+    console.log('Handling 400 error');
+    errorDetail.textContent = response.detail || 'Invalid request';
+    errorContainer.style.display = 'block';
+    submitButton.disabled = false;
+    form.style.opacity = '1';
+    buttonText.style.display = 'inline';
+    buttonSpinner.style.display = 'none';
+    errorContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } else if (status >= 500) {
+    console.log('Handling 5xx error');
+    errorDetail.textContent = response.detail || 'Server error occurred';
+    errorContainer.style.display = 'block';
+    submitButton.disabled = false;
+    form.style.opacity = '1';
+    buttonText.style.display = 'inline';
+    buttonSpinner.style.display = 'none';
+  } else {
+    console.log('Unexpected status code:', status);
+  }
+});
+</script>
 {% endblock %}

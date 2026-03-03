@@ -6,16 +6,54 @@ from fastapi import FastAPI, Request
 from loguru import logger
 
 from app.config import Settings
-
+from app.repository.exceptions import (
+    IBMVerifyAPIError,
+    IBMVerifyBadRequest,
+    IBMVerifyUnauthorized,
+    IBMVerifyForbidden,
+    IBMVerifyNotFound,
+    IBMVerifyServerError,
+)
 
 class IBMVerifyAdminClient:
     def __init__(self, base_url: str, client: AsyncOAuth2Client):
         self._base_url = base_url.rstrip("/")
         self._client = client
 
+    def _handle_response(self, response) -> None:
+        """Handle HTTP response and raise appropriate IBM Verify exception on error.
+
+        Args:
+            response: httpx.Response object
+
+        Raises:
+            IBMVerifyAPIError: Appropriate subclass based on status code
+        """
+        if response.status_code < 400:
+            return
+
+        try:
+            response_body = response.json()
+        except Exception:  # noqa: BLE001
+            response_body = {"raw_text": response.text}
+
+        error_map = {
+            400: IBMVerifyBadRequest,
+            401: IBMVerifyUnauthorized,
+            403: IBMVerifyForbidden,
+            404: IBMVerifyNotFound,
+        }
+
+        exception_class = error_map.get(response.status_code, IBMVerifyServerError)
+
+        raise exception_class(
+            message=f"IBM Verify API request failed",
+            status_code=response.status_code,
+            response_body=response_body,
+        )
     async def fetch_users(self) -> List[Dict[str, Any]]:
         response = await self._client.get(f"{self._base_url}/v2.0/Users")
-        response.raise_for_status()
+        self._handle_response(response)
         payload = response.json()
         if isinstance(payload, list):
             return payload
@@ -23,7 +61,7 @@ class IBMVerifyAdminClient:
 
     async def list_applications(self) -> List[Dict[str, Any]]:
         response = await self._client.get(f"{self._base_url}/v1.0/applications")
-        response.raise_for_status()
+        self._handle_response(response)
         payload = response.json()
         if isinstance(payload, list):
             return payload
@@ -31,7 +69,7 @@ class IBMVerifyAdminClient:
 
     async def get_application_detail(self, application_id: str) -> Dict[str, Any]:
         response = await self._client.get(f"{self._base_url}/v1.0/applications/{application_id}")
-        response.raise_for_status()
+        self._handle_response(response)
         return response.json()
 
     async def create_application(self, payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -39,12 +77,12 @@ class IBMVerifyAdminClient:
             f"{self._base_url}/v1.0/applications",
             json=payload,
         )
-        response.raise_for_status()
+        self._handle_response(response)
         return response.json()
 
     async def delete_application(self, application_id: str) -> None:
         response = await self._client.delete(f"{self._base_url}/v1.0/applications/{application_id}")
-        response.raise_for_status()
+        self._handle_response(response)
 
     async def get_application_total_logins(
         self,
@@ -61,7 +99,7 @@ class IBMVerifyAdminClient:
             f"{self._base_url}/v1.0/reports/app_total_logins",
             json=payload,
         )
-        response.raise_for_status()
+        self._handle_response(response)
         return response.json()
 
     async def get_application_audit_trail(
@@ -92,14 +130,14 @@ class IBMVerifyAdminClient:
             f"{self._base_url}/v1.0/reports/app_audit_trail",
             json=payload,
         )
-        response.raise_for_status()
+        self._handle_response(response)
         return response.json()
 
     async def get_client_secret(self, client_id: str) -> Dict[str, Any]:
         response = await self._client.get(
             f"{self._base_url}/oidc-mgmt/v2.0/clients/{client_id}/secrets"
         )
-        response.raise_for_status()
+        self._handle_response(response)
         return response.json()
 
     async def update_client_secret(self, client_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -107,23 +145,23 @@ class IBMVerifyAdminClient:
             f"{self._base_url}/oidc-mgmt/v2.0/clients/{client_id}/secrets",
             json=payload,
         )
-        response.raise_for_status()
+        self._handle_response(response)
         return response.json()
 
     async def delete_rotated_client_secrets(self, client_id: str, path: List[str]) -> bool:
-        payload = [{"path": p, "op": "remove"} for p in path]
+        payload = [{'path': p, 'op': 'remove'} for p in path]
         response = await self._client.patch(
             f"{self._base_url}/oidc-mgmt/v2.0/clients/{client_id}/secrets",
             json=payload,
         )
-        response.raise_for_status()
+        self._handle_response(response)
         return True
 
     async def get_application_entitlements(self, application_id: str) -> Dict[str, Any]:
         response = await self._client.get(
             f"{self._base_url}/v1.0/owner/applications/{application_id}/entitlements"
         )
-        response.raise_for_status()
+        self._handle_response(response)
         return response.json()
 
     async def aclose(self) -> None:

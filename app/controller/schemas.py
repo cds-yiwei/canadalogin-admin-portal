@@ -230,7 +230,6 @@ class OidcAdditionalConfig(BaseModel):
     sessionRequired: bool | None = None
     subjectTokenTypes: List[str] = Field(default_factory=list)
     validateDPoPProofJti: bool | None = None
-    jwksUri: str | None = None
 
 
 class OidcGrantTypes(BaseModel):
@@ -272,6 +271,7 @@ class OidcProperties(BaseModel):
     renewRefreshToken: str | bool | None = None
     renewRefreshTokenExpiry: int | None = None
     sendAllKnownUserAttributes: str | bool | None = None
+    jwksUri: str | None = None
 
 
 class OidcProvider(BaseModel):

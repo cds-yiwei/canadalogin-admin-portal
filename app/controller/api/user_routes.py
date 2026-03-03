@@ -5,7 +5,7 @@ from app.controller.schemas import ProfileResponse
 from app.dependencies.auth import require_api_user
 from app.dependencies.services import get_user_service
 
-router = APIRouter(prefix="/api/v1")
+router = APIRouter()
 
 
 @router.get("/me", response_model=ProfileResponse)

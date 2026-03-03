@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request, status
+from fastapi.responses import JSONResponse
 
 from app.service.admin_service import AdminService
 from app.controller.schemas import (
@@ -10,16 +11,71 @@ from app.controller.schemas import (
     UserRead,
     ProfileResponse,
 )
+from app.controller._utils import (
+    _build_application_creation_payload,
+    _extract_application_id,
+)
 from app.core.roles import Role
-from app.dependencies.auth import require_api_access
+from app.dependencies.auth import require_api_access, require_web_user
 from app.dependencies.services import get_admin_service
+from app.repository.exceptions import IBMVerifyBadRequest
+from loguru import logger
 
-router = APIRouter(prefix="/api/v1")
+router = APIRouter()
 
 
 @router.get("/health")
 async def healthcheck():
     return {"status": "ok"}
+
+
+@router.post("/applications")
+async def create_application(
+    request: Request,
+    _user: dict = Depends(require_web_user),
+    service: AdminService = Depends(get_admin_service),
+):
+    """Create a new application via API.
+    
+    Returns 201 on success with application data.
+    Returns 400 on validation error with error detail.
+    """
+    form_data = await request.form()
+    owner_id = (_user or {}).get("id")
+    owners: list[str] = [owner_id] if owner_id else []
+    for value in form_data.getlist("owners"):
+        owner_value = str(value).strip()
+        if owner_value and owner_value not in owners:
+            owners.append(owner_value)
+
+    try:
+        payload = _build_application_creation_payload(dict(form_data), owners)
+        created = await service.create_application(payload)
+        created_id = _extract_application_id(created)
+        return JSONResponse(
+            {"id": created_id or "", "data": created},
+            status_code=status.HTTP_201_CREATED,
+        )
+    except IBMVerifyBadRequest as exc:
+        error_detail = exc.get_error_detail()
+        logger.warning("Application creation validation failed: {}", error_detail)
+        return JSONResponse(
+            {"detail": error_detail},
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+    except ValueError as exc:
+        error_msg = str(exc)
+        logger.warning("Application creation validation error: {}", error_msg)
+        return JSONResponse(
+            {"detail": error_msg},
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Application creation failed: {}", exc)
+        return JSONResponse(
+            {"detail": "Internal server error during application creation"},
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
 @router.get("/users", response_model=list[UserRead])

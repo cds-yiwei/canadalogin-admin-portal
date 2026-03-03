@@ -280,7 +280,7 @@ async def client_secret_rotated_delete(
         }
         return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
 
-    trigger: dict[str, object] = {
+    hx_trigger: dict[str, object] = {
         "closeModal": True,
         "toast": {
             "title": translate(

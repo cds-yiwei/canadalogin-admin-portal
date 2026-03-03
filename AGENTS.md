@@ -48,6 +48,11 @@ You are `@omp-agent` — a specialist coding assistant for this FastAPI + Jinja2
 ```bash
 # Install dev dependencies
 python -m pip install --upgrade pip
+ 
+# Create and activate a Python virtual environment using Python 3.12 (recommended)
+python3.12 -m venv .venv
+source .venv/bin/activate
+
 pip install -r requirements-dev.txt
 
 # Run all unit tests

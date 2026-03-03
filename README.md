@@ -133,7 +133,13 @@ cl-admin-portal/
    - `REDIS_URL` (default: `redis://localhost:6379/0`)
    - `SESSION_COOKIE_NAME`, `SESSION_COOKIE_SECURE`, `SESSION_LIFETIME`
 
-2. **Install Python dependencies**:
+2. **Create and activate a Python virtual environment (recommended, Python 3.12)**:
+   ```bash
+   python3.12 -m venv .venv
+   source .venv/bin/activate
+   ```
+
+3. **Install Python dependencies**:
    ```bash
    pip install -r requirements-dev.txt
    ```

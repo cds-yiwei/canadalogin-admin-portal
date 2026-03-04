@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block content %}
+<gcds-heading tag="h1">{{ t('group_management.title') }}</gcds-heading>
+<gcds-text tag="p">{{ t('group_management.description') }}</gcds-text>
+
+<div class="panel-body">
+  <div class="gcds-stack" style="gap:24px;">
+    
+    <!-- Search and Add Section -->
+    <fieldset class="gcds-stack" style="gap:12px; padding:16px; border:1px solid #ddd; border-radius:4px; background:#f9f9f9;">
+      <gcds-heading tag="h2" style="margin:0;">{{ t('group_management.section_add_members') }}</gcds-heading>
+      
+      <!-- Inline Search Row (input + search button) -->
+      <form id="search-users-form" method="post" hx-post="/api/v1/users/search" hx-swap="none" style="display:flex; gap:8px; align-items:center;">
+        <input id="search-users-input" class="gcds-input" type="text" placeholder="{{ t('group_management.search_placeholder') }}" autocomplete="off" name="username" style="flex:1;" />
+        <div style="margin-left:auto;">
+          <gcds-button id="search-users-button" style="min-width:96px; display:inline-flex; justify-content:center; align-items:center;" 
+            type="submit"
+          >
+            {{ t('group_management.button_search') }}
+          </gcds-button>
+        </div>
+      </form>
+    </fieldset>
+
+    <!-- Current Members Section -->
+    <fieldset class="gcds-stack" style="gap:12px; padding:16px; border:1px solid #ddd; border-radius:4px; background:#f9f9f9;">
+      <gcds-heading tag="h2" style="margin:0;">{{ t('group_management.section_current_members') }} ({{ members | length }})</gcds-heading>
+      
+      <div id="members-list">
+        {% include "fragments/group_members_list.html" %}
+      </div>
+    </fieldset>
+
+  </div>
+</div>
+
+<style>
+  .gcds-stack {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .muted {
+    color: #666;
+    font-size: 14px;
+  }
+  
+  .panel-body {
+    padding: 20px;
+  }
+  
+  fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+</style>
+
+
+
+{% endblock %}

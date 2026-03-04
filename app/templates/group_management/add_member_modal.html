@@ -1,0 +1,54 @@
+<!-- Add Member Modal -->
+<div id="add-member-modal" class="modal-panel" aria-hidden="true" style="display:none;">
+  <div class="modal-header">
+    <gcds-heading tag="h2">{{ t('group_management.search_modal_title') }}</gcds-heading>
+    <button id="add-member-modal-close" aria-label="Close" style="background:none; border:none; font-size:24px; cursor:pointer;">×</button>
+  </div>
+
+  <div class="modal-body" style="padding:20px; gap:16px; display:flex; flex-direction:column;">
+    <!-- Search Results -->
+    <div id="modal-search-results" style="max-height:400px; overflow-y:auto; border:1px solid #ddd; border-radius:4px; padding:8px;">
+      <!-- Search results are rendered here. Modal is only used to display results. -->
+    </div>
+  </div>
+
+  <div class="modal-footer" style="padding:20px; gap:12px; display:flex; justify-content:flex-end;">
+    <gcds-button button-role="secondary" id="add-member-modal-cancel">
+      {{ t('group_management.button_cancel') }}
+    </gcds-button>
+  </div>
+</div>
+
+<style>
+  .modal-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1000;
+    width: 90%;
+    max-width: 500px;
+  }
+  .modal-open { display:block !important; }
+
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .modal-header h2 {
+    margin: 0;
+  }
+
+  .modal-footer {
+    border-top: 1px solid #ddd;
+  }
+</style>

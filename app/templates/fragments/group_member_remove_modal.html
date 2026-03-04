@@ -1,0 +1,38 @@
+<div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="remove-member-title">
+  <div class="modal-header" style="display:flex; align-items:center; gap:12px;">
+    <gcds-heading tag="h3" class="modal-title" id="remove-member-title">
+      {{ t('group_management.modal_title') }}
+    </gcds-heading>
+    <button class="modal-close" data-modal-close aria-label="{{ t('group_management.button_cancel') }}">×</button>
+  </div>
+  <div class="modal-body">
+    <gcds-text>{{ t('group_management.modal_body') }}</gcds-text>
+    <gcds-text><strong>{{ t('group_management.modal_warning') }}</strong></gcds-text>
+    <div class="table-wrapper" style="margin-top:16px;">
+      <table class="data-table" style="min-width:0;">
+        <tbody>
+          <tr>
+            <th scope="row">{{ t('group_management.modal_member_email') }}</th>
+            <td>{{ member_email or t('common.na') }}</td>
+          </tr>
+          <tr>
+            <th scope="row">{{ t('group_management.modal_member_id') }}</th>
+            <td>{{ member_id or t('common.na') }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px;">
+    <gcds-button type="button" variant="secondary" data-modal-close>{{ t('group_management.button_cancel') }}</gcds-button>
+    <form method="POST" action="/group-management/application-owners/remove-user"
+          hx-post="/group-management/application-owners/remove-user"
+          hx-target="#members-list"
+          hx-swap="innerHTML swap:1s"
+          hx-on::after-request="if(event.detail.xhr.status == 200) { window.Alpine?.store('ui')?.closeModal?.(); }"
+          style="margin:0;">
+      <input type="hidden" name="user_id" value="{{ member_id }}">
+      <gcds-button type="submit" button-role="danger">{{ t('group_management.button_remove') }}</gcds-button>
+    </form>
+  </div>
+</div>

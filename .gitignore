@@ -13,3 +13,4 @@ node_modules/
 .pyre/
 .pytype/
 .pyre_check/
+.venv_test/

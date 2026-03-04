@@ -15,6 +15,7 @@ router = APIRouter()
 async def login_page(request: Request):
     locale = get_request_locale(request)
     return templates.TemplateResponse(
+        request,
         "auth/login.html",
         {
             "request": request,

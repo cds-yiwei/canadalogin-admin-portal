@@ -41,6 +41,7 @@ async def home(
     flash_toast = session.pop("flash_toast", None)
     locale = get_request_locale(request)
     return templates.TemplateResponse(
+        request,
         "home.html",
         {
             "request": request,
@@ -65,6 +66,7 @@ async def profile_page(
     applications = await service.get_applications()
     locale = get_request_locale(request)
     return templates.TemplateResponse(
+        request,
         "profile.html",
         {
             "request": request,
@@ -101,6 +103,7 @@ async def applications_page(
     flash_toast = session.pop("flash_toast", None)
     locale = get_request_locale(request)
     return templates.TemplateResponse(
+        request,
         "applications/list.html",
         {
             "request": request,
@@ -122,6 +125,7 @@ async def applications_page(
 async def application_create_page(request: Request, user: dict = Depends(require_web_user)):
     locale = get_request_locale(request)
     return templates.TemplateResponse(
+        request,
         "applications/new.html",
         {
             "request": request,
@@ -210,6 +214,7 @@ async def application_detail_page(
         else application
     )
     return templates.TemplateResponse(
+        request,
         "applications/detail.html",
         {
             "request": request,
@@ -318,6 +323,7 @@ async def application_usage_page(
     locale = get_request_locale(request)
     breadcrumb_label = app_name or application_id
     return templates.TemplateResponse(
+        request,
         "applications/usage.html",
         {
             "request": request,

@@ -1,0 +1,28 @@
+{% if members %}
+  <div class="gcds-stack" style="gap:8px;">
+    {% for member in members %}
+      <div data-member-id="{{ member.id }}" 
+           style="padding:12px; border:1px solid #eee; border-radius:4px; display:flex; justify-content:space-between; align-items:center; gap:12px; background:#fff;">
+        <div style="flex:1;">
+          <div style="font-weight:600;">{{ member.email or member.get('userName') or member.get('id') }}</div>
+          <div style="font-size:12px; color:#666;">{{ member.get('display_name') or member.get('displayName') or '' }}</div>
+        </div>
+        <gcds-button 
+          type="button"
+          size="small"
+          button-role="danger"
+          hx-get="/fragments/group-member-remove-modal?member_id={{ member.id }}&member_email={{ member.email or member.get('userName') or member.get('id') | urlencode }}"
+          hx-trigger="click"
+          hx-swap="none"
+          hx-on::after-response="if(event.detail.xhr.status == 200) { const raw = event.detail.xhr.getResponseHeader('HX-Trigger'); if(raw) { try { const data = JSON.parse(raw); if(data.modal?.html) window.Alpine?.store('ui')?.openModal?.(data.modal.html); } catch(e) {} } }"
+        >
+          {{ t('group_management.button_remove') }}
+        </gcds-button>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div style="padding:12px; text-align:center; color:#666;">
+    <gcds-text>{{ t('group_management.section_current_members') }}</gcds-text>
+  </div>
+{% endif %}

@@ -14,3 +14,6 @@ profile = "black"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+filterwarnings = [
+  "ignore:coroutine '.*' was never awaited:RuntimeWarning",
+]

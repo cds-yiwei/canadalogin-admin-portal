@@ -26,6 +26,7 @@ async def requests_fragment(request: Request):
     session = getattr(request, "session", {}) or {}
     user = session.get("user")
     return templates.TemplateResponse(
+        request,
         "fragments/requests.html",
         {
             "request": request,

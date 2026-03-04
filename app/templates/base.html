@@ -42,6 +42,9 @@
         {% if user %}
         <gcds-nav-link href="/">{{ t('nav.dashboard') }}</gcds-nav-link>
         <gcds-nav-link href="/applications">{{ t('nav.applications') }}</gcds-nav-link>
+        {% if user.get('roles') and 'SUPER_ADMIN' in user.get('roles') %}
+        <gcds-nav-link href="/group-management/application-owners">Group Management</gcds-nav-link>
+        {% endif %}
         <gcds-nav-group open-trigger="{{ user.get('display_name') or user.get('email') or t('nav.account') }}" menu-label="{{ t('nav.account') }}">
           <gcds-nav-link href="/profile">{{ t('nav.profile') }}</gcds-nav-link>
           <gcds-nav-link href="/auth/logout">{{ t('nav.sign_out') }}</gcds-nav-link>
@@ -190,15 +193,44 @@
 
       document.addEventListener("htmx:afterRequest", (evt) => {
         const raw = evt.detail?.xhr?.getResponseHeader("HX-Trigger");
-        if (!raw || !window.Alpine?.store) return;
-        try {
-          const data = typeof raw === "string" ? JSON.parse(raw) : raw;
-          if (data.toast) Alpine.store("ui").addToast(data.toast);
-          if (data.modal?.html) Alpine.store("ui").openModal(data.modal.html);
-          if (data.closeModal) Alpine.store("ui").closeModal();
-        } catch (err) {
-          console.warn("Invalid HX-Trigger payload", err);
+        // Parse and handle HX-Trigger when present
+        if (raw) {
+          try {
+            const data = typeof raw === "string" ? JSON.parse(raw) : raw;
+            if (data.toast) {
+              if (window.Alpine?.store) Alpine.store("ui").addToast(data.toast);
+              else window.__pending_toast = data.toast;
+            }
+            if (data.modal?.html) {
+              if (window.Alpine?.store) {
+                try { Alpine.store("ui").openModal(data.modal.html); } catch(e) { window.__pending_modal_html = data.modal.html; }
+              } else {
+                window.__pending_modal_html = data.modal.html;
+              }
+            }
+            if (data.closeModal) {
+              if (window.Alpine?.store) Alpine.store("ui").closeModal();
+              else window.__pending_close_modal = true;
+            }
+          } catch (err) { console.warn("Invalid HX-Trigger payload", err); }
         }
+
+        // Additionally, for specific request paths (add/remove) ensure modal is closed on success
+        try{
+          const reqPath = evt.detail?.requestConfig?.path || '';
+          const status = evt.detail?.xhr?.status;
+          if (reqPath && (reqPath.includes('/group-management/application-owners/add-user') || reqPath.includes('/group-management/application-owners/remove-user')) && status >=200 && status < 300){
+            if (window.Alpine?.store) Alpine.store('ui').closeModal();
+            else window.__pending_close_modal = true;
+          }
+        }catch(e){}
+      });
+
+      document.addEventListener('alpine:init', () => {
+        // If any pending modal or toast was set before Alpine initialized, handle them now
+        if (window.__pending_toast) { try{ Alpine.store('ui').addToast(window.__pending_toast); } catch(e){} delete window.__pending_toast; }
+        if (window.__pending_modal_html) { try{ Alpine.store('ui').openModal(window.__pending_modal_html); } catch(e){} delete window.__pending_modal_html; }
+        if (window.__pending_close_modal) { try{ Alpine.store('ui').closeModal(); } catch(e){} delete window.__pending_close_modal; }
       });
 
       document.addEventListener("click", (evt) => {

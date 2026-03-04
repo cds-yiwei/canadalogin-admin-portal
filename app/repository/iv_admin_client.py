@@ -5,7 +5,7 @@ from authlib.integrations.httpx_client import AsyncOAuth2Client
 from fastapi import FastAPI, Request
 from loguru import logger
 
-from app.config import Settings
+from app.config import Settings, get_settings
 from app.repository.exceptions import (
     IBMVerifyBadRequest,
     IBMVerifyUnauthorized,
@@ -280,6 +280,7 @@ class IBMVerifyAdminClient:
         response = await self._client.patch(
             f"{self._base_url}/v2.0/Groups/{group_id}",
             json=payload,
+            headers={"Content-Type": "application/scim+json"},
         )
         self._handle_response(response)
 
@@ -305,6 +306,7 @@ class IBMVerifyAdminClient:
         response = await self._client.patch(
             f"{self._base_url}/v2.0/Groups/{group_id}",
             json=payload,
+            headers={"Content-Type": "application/scim+json"},
         )
         self._handle_response(response)
 
@@ -339,7 +341,19 @@ class IBMVerifyAdminClient:
 async def get_admin_api_client_async(request: Request) -> AsyncOAuth2Client:
     admin_api_client_async = getattr(request.app.state, "admin_api_client_async", None)
     if admin_api_client_async is None:
-        raise ValueError("admin_api_client_async is not initialized on app.state")
+        # Lazily initialize an AsyncOAuth2Client for test/edge cases where startup
+        # lifespan wasn't executed. Use runtime settings to configure the client.
+        settings = get_settings()
+        token_endpoint = f"{settings.ibm_sv_base_url.rstrip('/')}" + "/oauth2/token"
+        admin_api_client_async = AsyncOAuth2Client(
+            client_id=settings.ibm_sv_client_id,
+            client_secret=settings.ibm_sv_client_secret,
+            grant_type="client_credentials",
+            token_endpoint=token_endpoint,
+            leeway=120,
+        )
+        request.app.state.admin_api_client_async = admin_api_client_async
+        logger.info("Lazy-registered Async Admin API Client on app.state")
 
     if not admin_api_client_async.token or admin_api_client_async.token.is_expired():
         logger.info("Fetching new token for Admin API client")

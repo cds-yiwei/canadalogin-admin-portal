@@ -22,5 +22,6 @@ async def test_app_audit_trail_search_after_calls_api(monkeypatch):
     # client may normalize upstream or accept already-normalized payloads
     assert isinstance(res, dict)
     assert "events" in res
-    # accept next either at top-level or in normalized dict
-    assert res.get("next") == '1554479231870, "uuid"' or res.get("events") and True
+    # accept next token when present, or at least ensure events were returned
+    expected_token = '1554479231870, "uuid"'
+    assert (res.get("next") == expected_token) or (isinstance(res.get("events"), list) and len(res.get("events")) > 0)

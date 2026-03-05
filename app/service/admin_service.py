@@ -69,6 +69,32 @@ class AdminService:
             sort_order,
         )
 
+    async def get_application_audit_trail_search_after(
+        self,
+        application_id: str,
+        from_date: Optional[str] = None,
+        to_date: Optional[str] = None,
+        size: int = 25,
+        search_after: Optional[str] = None,
+        search_dir: Optional[str] = None,
+    ) -> tuple:
+        """Call repository search_after API and normalize results.
+
+        Returns: (events_list, tokens_dict)
+        """
+        raw = await self._client.app_audit_trail_search_after(
+            application_id,
+            from_date,
+            to_date,
+            size=size,
+            search_after=search_after,
+            search_dir=search_dir,
+        )
+        # raw expected to be dict with 'events' and optional 'next'/'prev'
+        events = raw.get("events") if isinstance(raw, dict) else (raw["events"] if raw and isinstance(raw, (list, tuple)) else [])
+        tokens = {"next": raw.get("next"), "prev": raw.get("prev")} if isinstance(raw, dict) else {}
+        return events, tokens
+
     async def get_client_secret(self, client_id: str) -> Dict[str, Any]:
         return await self._client.get_client_secret(client_id)
 

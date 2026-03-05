@@ -315,6 +315,14 @@ async def application_usage_page(
     # then prefer request payload (form/json), then headers as fallback
     search_after = request.query_params.get("SEARCH_AFTER")
     search_dir = request.query_params.get("SEARCH_DIR")
+    # Read PAGE param from query params for stateless page tracking (default 1)
+    page_param = request.query_params.get("PAGE")
+    try:
+        current_page = int(page_param) if page_param is not None else 1
+        if current_page < 1:
+            current_page = 1
+    except Exception:
+        current_page = 1
 
     try:
         if not search_after and request.headers.get("content-type", "").startswith("application/json"):
@@ -380,18 +388,32 @@ async def application_usage_page(
 
     # Temporary debug log to inspect audit trail data when rendering the page
     try:
-        logger.debug(f"application_usage_page: events_count={len(events) if events is not None else 0} tokens={tokens}")
+        logger.debug(f"application_usage_page: events_count={len(events) if events is not None else 0} tokens={tokens} total={audit_trail_result.get('total') if isinstance(audit_trail_result, dict) else None} current_page={current_page} size={size}")
     except Exception:
         logger.debug("application_usage_page: events or tokens unavailable")
+
+    # Determine has_next based on total and current_page * size
+    total_count = None
+    if isinstance(audit_trail_result, dict):
+        total_count = audit_trail_result.get("total")
+    has_next = False
+    try:
+        if isinstance(total_count, int) and size and isinstance(current_page, int):
+            has_next = (current_page * int(size)) < int(total_count)
+        else:
+            # Fallback: if returned events length == size, likely has next page
+            has_next = len(events or []) >= int(size)
+    except Exception:
+        has_next = len(events or []) >= int(size)
 
     # Support a debug JSON output for quick inspection: ?debug=1
     if request.query_params.get("debug") == "1":
         from fastapi.responses import JSONResponse
 
         try:
-            return JSONResponse({"events": events or [], "tokens": tokens})
+            return JSONResponse({"events": events or [], "tokens": tokens, "total": total_count, "current_page": current_page, "has_next": has_next})
         except Exception:
-            return JSONResponse({"events": [], "tokens": {}})
+            return JSONResponse({"events": [], "tokens": {}, "total": None, "current_page": current_page, "has_next": False})
 
     # Ensure events is a list for template
     if not isinstance(events, list):
@@ -411,6 +433,8 @@ async def application_usage_page(
             "audit_trail_rows": audit_trail_rows,
             "next": tokens.get("next"),
             "prev": tokens.get("prev"),
+            "current_page": current_page,
+            "has_next": has_next,
             "title": translate(locale, "applications.usage.title"),
             "description": translate(locale, "applications.usage.description"),
             "breadcrumbs": [

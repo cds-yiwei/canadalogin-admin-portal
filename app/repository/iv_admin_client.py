@@ -168,9 +168,16 @@ class IBMVerifyAdminClient:
         events = []
         next_token = None
         prev_token = None
+        total = None
         try:
             report = payload.get("response", {}).get("report", {})
             hits = report.get("hits", []) if isinstance(report, dict) else []
+            # Extract total if present (could be int or dict with value)
+            raw_total = report.get("total") if isinstance(report, dict) else None
+            if isinstance(raw_total, dict):
+                total = raw_total.get("value")
+            elif isinstance(raw_total, int):
+                total = raw_total
             for hit in hits:
                 _id = hit.get("_id")
                 sort = hit.get("sort") or []
@@ -192,6 +199,17 @@ class IBMVerifyAdminClient:
                     }
                 )
             if hits:
+                first = hits[0]
+                first_sort = first.get("sort") or []
+                # For prev token, use first item's sort
+                if first_sort and len(first_sort) >= 2:
+                    first_ts = first_sort[0]
+                    first_id = first_sort[1]
+                else:
+                    first_ts = first.get("_source", {}).get("time")
+                    first_id = first.get("_id")
+                if first_ts and first_id:
+                    prev_token = f'{first_ts}, "{first_id}"'
                 last = hits[-1]
                 last_sort = last.get("sort") or []
                 if last_sort and len(last_sort) >= 2:
@@ -203,9 +221,10 @@ class IBMVerifyAdminClient:
                 if last_ts and last_id:
                     next_token = f'{last_ts}, "{last_id}"'
         except Exception:
-            # fallback: return raw payload in events key if possible
             pass
-        return {"events": events, "next": next_token, "prev": prev_token}
+        normalized = {"events": events, "next": next_token, "prev": prev_token, "total": total}
+        logger.debug(f"app_audit_trail_search_after: normalized={normalized}")
+        return normalized
 
     async def app_audit_trail_search_after(self, application_id: str, from_date: Optional[str] = None, to_date: Optional[str] = None, size: int = 25, search_after: Optional[str] = None, search_dir: Optional[str] = None) -> Dict[str, Any]:
         """Call the app_audit_trail_search_after endpoint and return parsed JSON.

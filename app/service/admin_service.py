@@ -108,7 +108,7 @@ class AdminService:
             except Exception:
                 events = []
         # Normalize into consistent dict shape
-        return {"events": events, "next": next_token, "prev": prev_token}
+        return {"events": events, "next": next_token, "prev": prev_token, "total": total}
 
     async def get_client_secret(self, client_id: str) -> Dict[str, Any]:
         return await self._client.get_client_secret(client_id)

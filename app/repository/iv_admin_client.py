@@ -152,10 +152,16 @@ class IBMVerifyAdminClient:
             "SORT_BY": sort_by or "time",
             "SORT_ORDER": normalized_sort_order,
         }
+        # Log outgoing payload and response for initial audit_trail calls
+        logger.info("get_application_audit_trail: payload=%s", payload)
         response = await self._client.post(
             f"{self._base_url}/v1.0/reports/app_audit_trail",
             json=payload,
         )
+        try:
+            logger.info("get_application_audit_trail: response_status=%s response_text=%s", response.status_code, response.text)
+        except Exception:
+            logger.info("get_application_audit_trail: response received (non-text)")
         self._handle_response(response)
         return response.json()
 

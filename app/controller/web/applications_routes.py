@@ -416,7 +416,9 @@ async def application_usage_page(
     if request.query_params.get("append") == "1" or request.headers.get("accept", "").startswith("application/json"):
         from fastapi.responses import JSONResponse
         try:
-            return JSONResponse({"events": events or [], "next": tokens.get("next"), "prev": tokens.get("prev"), "total": total_count, "has_next": has_next})
+            # For append JSON responses, use _parse_audit_trail to apply server-side marking (username_known, username_display, origin_display, time_seconds)
+            parsed_rows = parse_audit_trail({'events': events or []})
+            return JSONResponse({"events": parsed_rows, "next": tokens.get("next"), "total": total_count, "has_next": has_next})
         except Exception:
             return JSONResponse({"events": [], "next": None, "prev": None, "total": None, "has_next": False})
 

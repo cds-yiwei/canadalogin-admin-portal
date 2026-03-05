@@ -41,67 +41,8 @@
 
 <section class="gcds-mb-200">
   <gcds-heading tag="h2">{{ t('applications.usage.audit_trail_title') }}</gcds-heading>
-  <div class="table-wrapper">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th scope="col">{{ t('applications.usage.audit_trail.table.user') }}</th>
-          <th scope="col">{{ t('applications.usage.audit_trail.table.ip') }}</th>
-          <th scope="col">{{ t('applications.usage.audit_trail.table.result') }}</th>
-          <th scope="col">{{ t('applications.usage.audit_trail.table.country') }}</th>
-          <th scope="col">{{ t('applications.usage.audit_trail.table.time') }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% if audit_trail_rows %}
-          {% for entry in audit_trail_rows %}
-            <tr>
-              <td>
-                <div class="table-actions">
-                  <span>
-                    {{ entry.username_display if entry.username_known else t('applications.usage.audit_trail.unknown_user') }}
-                  </span>
-                  {% if not entry.username_known %}
-                    <span class="pill pill-muted">{{ t('applications.usage.audit_trail.unknown_tag') }}</span>
-                  {% endif %}
-                </div>
-              </td>
-              <td>
-                <div class="table-actions">
-                  <span>{{ entry.origin_display or t('applications.usage.audit_trail.unknown_ip') }}</span>
-                  {% if entry.ip_version %}
-                    <span class="pill pill-muted">IPv{{ entry.ip_version }}</span>
-                  {% else %}
-                    <span class="pill pill-muted">{{ t('applications.usage.audit_trail.ip_unknown_tag') }}</span>
-                  {% endif %}
-                </div>
-              </td>
-              <td>
-                {% if entry.result == "success" %}
-                  <span class="pill pill-success">{{ t('applications.usage.audit_trail.status_success') }}</span>
-                {% elif entry.result == "failure" %}
-                  <span class="pill pill-muted">{{ t('applications.usage.audit_trail.status_failure') }}</span>
-                {% else %}
-                  <span class="pill pill-muted">{{ t('applications.usage.audit_trail.status_unknown') }}</span>
-                {% endif %}
-              </td>
-              <td>{{ entry.country or t('applications.usage.audit_trail.unknown_country') }}</td>
-              <td>
-                {% if entry.time_seconds %}
-                  <span class="js-local-datetime" data-epoch-seconds="{{ entry.time_seconds }}">{{ entry.time_seconds }}</span>
-                {% else %}
-                  {{ t('common.na') }}
-                {% endif %}
-              </td>
-            </tr>
-          {% endfor %}
-        {% else %}
-          <tr>
-            <td colspan="5">{{ t('applications.usage.audit_trail.empty') }}</td>
-          </tr>
-        {% endif %}
-      </tbody>
-    </table>
+  <div id="audit-trail-list">
+    {% include 'fragments/audit_trail_list.html' %}
   </div>
 </section>
 {% endblock %}

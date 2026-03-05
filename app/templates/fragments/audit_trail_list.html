@@ -31,14 +31,14 @@
     <div class="d-flex justify-content-between">
       <div>
         {% if prev %}
-          <button class="gcds-button" hx-post="" hx-headers='{"SEARCH_AFTER":"{{ prev }}", "SEARCH_DIR":"before"}' hx-target="#audit-trail-list" hx-swap="outerHTML">Prev</button>
+          <button class="gcds-button" hx-post="" hx-vals='{"SEARCH_AFTER":"{{ prev }}", "SEARCH_DIR":"before"}' hx-target="#audit-trail-list" hx-swap="outerHTML">Prev</button>
         {% else %}
           <button class="gcds-button" disabled>Prev</button>
         {% endif %}
       </div>
       <div>
         {% if next %}
-          <button class="gcds-button" hx-post="" hx-headers='{"SEARCH_AFTER":"{{ next }}"}' hx-target="#audit-trail-list" hx-swap="outerHTML">Next</button>
+          <button class="gcds-button" hx-post="" hx-vals='{"SEARCH_AFTER":"{{ next }}"}' hx-target="#audit-trail-list" hx-swap="outerHTML">Next</button>
         {% else %}
           <button class="gcds-button" disabled>Next</button>
         {% endif %}

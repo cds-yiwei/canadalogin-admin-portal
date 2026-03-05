@@ -312,10 +312,28 @@ async def application_usage_page(
             "unique_users": report.unique_users.value,
         }
     # Read SEARCH_AFTER and SEARCH_DIR from headers (prefer headers)
-    search_after = request.headers.get("SEARCH_AFTER")
-    search_dir = request.headers.get("SEARCH_DIR")
+    # Prefer SEARCH_AFTER/SEARCH_DIR from request payload (form/json), fallback to headers
+    search_after = None
+    search_dir = None
+    try:
+        if request.headers.get("content-type", "").startswith("application/json"):
+            body = await request.json()
+            search_after = body.get("SEARCH_AFTER")
+            search_dir = body.get("SEARCH_DIR")
+        else:
+            form = await request.form()
+            search_after = form.get("SEARCH_AFTER")
+            search_dir = form.get("SEARCH_DIR")
+    except Exception:
+        # ignore parse errors and fallback to headers
+        pass
 
-    # If HX-Request and SEARCH_AFTER present, delegate to search_after API
+    if not search_after:
+        search_after = request.headers.get("SEARCH_AFTER")
+    if not search_dir:
+        search_dir = request.headers.get("SEARCH_DIR")
+
+    # If SEARCH_AFTER present, delegate to search_after API
     if search_after is not None or search_dir is not None:
         # Use the new service method that supports search_after semantics
         audit_trail_result = await service.get_application_audit_trail_search_after(

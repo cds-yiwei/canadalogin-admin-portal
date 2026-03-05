@@ -159,7 +159,45 @@ class IBMVerifyAdminClient:
         self._handle_response(response)
         return response.json()
 
+    async def app_audit_trail_search_after(self, application_id: str, from_date: Optional[str] = None, to_date: Optional[str] = None, size: int = 25, search_after: Optional[str] = None, search_dir: Optional[str] = None) -> Dict[str, Any]:
+        """Call the app_audit_trail_search_after endpoint and return parsed JSON.
+
+        Args:
+            application_id: Application ID to query
+            from_date: From timestamp (ms)
+            to_date: To timestamp (ms)
+            size: Page size
+            search_after: Optional opaque cursor
+            search_dir: Optional direction ("before" or "after")
+        Returns:
+            Parsed JSON response as dict
+        """
+        now = datetime.now()
+        past_24_hours = now - timedelta(hours=24)
+        to_timestamp = to_date or str(int(now.timestamp() * 1000))
+        from_timestamp = from_date or str(int(past_24_hours.timestamp() * 1000))
+        payload = {
+            "APPID": application_id,
+            "FROM": from_timestamp,
+            "TO": to_timestamp,
+            "SIZE": size if size > 0 else 25,
+            "SORT_BY": "time",
+            "SORT_ORDER": "DESC",
+        }
+        # Include SEARCH_AFTER/SEARCH_DIR in payload (preferred) for upstream
+        if search_after:
+            payload["SEARCH_AFTER"] = search_after
+        if search_dir:
+            payload["SEARCH_DIR"] = search_dir
+        response = await self._client.post(
+            f"{self._base_url}/v1.0/reports/app_audit_trail_search_after",
+            json=payload,
+        )
+        self._handle_response(response)
+        return response.json()
+
     async def get_client_secret(self, client_id: str) -> Dict[str, Any]:
+
         response = await self._client.get(
             f"{self._base_url}/oidc-mgmt/v2.0/clients/{client_id}/secrets"
         )

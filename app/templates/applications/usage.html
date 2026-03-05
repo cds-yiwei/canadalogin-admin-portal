@@ -132,9 +132,21 @@
   async function loadMore(){
     const next = btn.getAttribute('data-next');
     if(!next) return;
+    // localized labels
+    const L_LOAD_MORE = '{{ t('applications.usage.load_more') }}';
+    const L_LOADING = '{{ t('applications.usage.loading') }}';
     try{
       btn.disabled = true;
-      btn.textContent = 'Loading...';
+      btn.setAttribute('aria-busy','true');
+      // set loading label
+      if(btn.tagName.toLowerCase()==='gcds-button'){
+        // gcds-button renders to button; find inner button element
+        const inner = btn.querySelector('button');
+        if(inner) inner.textContent = L_LOADING;
+        else btn.textContent = L_LOADING;
+      } else {
+        btn.textContent = L_LOADING;
+      }
       const resp = await fetch(`/applications/{{ app_id }}/usage?SEARCH_AFTER=${encodeURIComponent(next)}&append=1`, {
         headers: { 'Accept': 'application/json' }
       });
@@ -176,7 +188,16 @@
       if(data.next){
         btn.setAttribute('data-next', data.next);
         btn.disabled = false;
-        btn.textContent = 'Load more';
+        btn.removeAttribute('aria-busy');
+        // restore localized label
+        const L_LOAD_MORE = '{{ t('applications.usage.load_more') }}';
+        if(btn.tagName.toLowerCase()==='gcds-button'){
+          const inner = btn.querySelector('button');
+          if(inner) inner.textContent = L_LOAD_MORE;
+          else btn.textContent = L_LOAD_MORE;
+        } else {
+          btn.textContent = L_LOAD_MORE;
+        }
       } else {
         btn.removeAttribute('data-next');
         btn.hidden = true;

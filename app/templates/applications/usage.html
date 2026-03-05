@@ -72,7 +72,7 @@
             <td>{{ entry.origin_display }}</td>
             <td>{{ entry.result }}</td>
             <td>{{ entry.country }}</td>
-            <td>{% if entry.time_seconds %}<span class="js-local-datetime" data-epoch-seconds="{{ entry.time_seconds }}">{{ entry.time_seconds }}</span>{% else %}N/A{% endif %}</td>
+            <td>{% if entry.time_seconds %}<span class="js-local-datetime" data-epoch-seconds="{{ entry.time_seconds }}" aria-label="{{ t('applications.usage.audit_trail.local_time') }}">Loading…</span>{% else %}N/A{% endif %}</td>
           </tr>
         {% endfor %}
       </tbody>
@@ -81,6 +81,7 @@
   <div id="audit-trail-load-more-wrapper" class="gcds-mt-100">
     {% if next and has_next %}
       <button id="audit-trail-load-more" class="gcds-button" data-next="{{ next }}">Load more</button>
+      <div id="audit-trail-announce" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
     {% else %}
       <div id="audit-trail-load-more" aria-hidden="true"></div>
     {% endif %}
@@ -108,6 +109,25 @@
   const tbody = document.getElementById('audit-trail-rows');
   const tpl = document.getElementById('audit-trail-row-tpl');
   if(!btn || !tbody || !tpl) return;
+
+  // Apply localized datetime formatting for elements with .js-local-datetime
+  window.applyLocalDates = function(){
+    try{
+      const els = document.querySelectorAll('.js-local-datetime');
+      for(const el of els){
+        const raw = el.getAttribute('data-epoch-seconds');
+        const secs = raw ? parseInt(raw, 10) : null;
+        if(!secs || isNaN(secs)) continue;
+        const d = new Date(secs * 1000);
+        el.textContent = d.toLocaleString(undefined, {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+      }
+    }catch(e){
+      console.error('applyLocalDates error', e);
+    }
+  };
+  document.addEventListener('DOMContentLoaded', function(){
+    if(window.applyLocalDates) window.applyLocalDates();
+  });
 
   async function loadMore(){
     const next = btn.getAttribute('data-next');
@@ -137,11 +157,20 @@
         node.querySelector('.tpl-country').textContent = ev.country || '';
         const timeEl = node.querySelector('.tpl-time');
         if(ev.timestamp){
-          timeEl.setAttribute('data-epoch-seconds', Math.floor(ev.timestamp/1000));
-          timeEl.textContent = Math.floor(ev.timestamp/1000);
+          const secs = Math.floor(ev.timestamp/1000);
+          timeEl.setAttribute('data-epoch-seconds', secs);
+          timeEl.textContent = 'Loading…';
         }
         tbody.appendChild(node);
       }
+      // announce appended rows for screen readers
+      try{
+        const announce = document.getElementById('audit-trail-announce');
+        if(announce){
+          const count = (data.events || []).length;
+          if(count>0) announce.textContent = `${count} ${count===1? 'row appended':'rows appended'}`;
+        }
+      }catch(e){/* no-op */}
       // update next token and button
       if(data.next){
         btn.setAttribute('data-next', data.next);

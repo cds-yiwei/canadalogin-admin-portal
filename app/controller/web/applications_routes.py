@@ -412,14 +412,13 @@ async def application_usage_page(
     # Use synthesized or upstream prev_token
     tokens["prev"] = prev_token
 
-    # Support a debug JSON output for quick inspection: ?debug=1
-    if request.query_params.get("debug") == "1":
+    # If this is an append request expecting JSON (append=1), return JSON payload for client-side rendering
+    if request.query_params.get("append") == "1" or request.headers.get("accept", "").startswith("application/json"):
         from fastapi.responses import JSONResponse
-
         try:
-            return JSONResponse({"events": events or [], "tokens": tokens, "total": total_count, "has_next": has_next})
+            return JSONResponse({"events": events or [], "next": tokens.get("next"), "prev": tokens.get("prev"), "total": total_count, "has_next": has_next})
         except Exception:
-            return JSONResponse({"events": [], "tokens": {}, "total": None, "has_next": False})
+            return JSONResponse({"events": [], "next": None, "prev": None, "total": None, "has_next": False})
 
     # Ensure events is a list for template
     if not isinstance(events, list):

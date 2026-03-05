@@ -53,9 +53,119 @@
         </tr>
       </thead>
       <tbody id="audit-trail-rows">
-        {% include 'fragments/audit_trail_rows.html' %}
+        {% for entry in audit_trail_rows %}
+          <tr>
+            <td>
+              <div class="table-actions">
+                <span>
+                  {% if entry.username_known %}
+                    {{ entry.username_display }}
+                  {% else %}
+                    {{ t('applications.usage.audit_trail.unknown_user') }}
+                  {% endif %}
+                </span>
+                {% if not entry.username_known %}
+                  <span class="pill pill-muted">{{ t('applications.usage.audit_trail.unknown_tag') }}</span>
+                {% endif %}
+              </div>
+            </td>
+            <td>{{ entry.origin_display }}</td>
+            <td>{{ entry.result }}</td>
+            <td>{{ entry.country }}</td>
+            <td>{% if entry.time_seconds %}<span class="js-local-datetime" data-epoch-seconds="{{ entry.time_seconds }}">{{ entry.time_seconds }}</span>{% else %}N/A{% endif %}</td>
+          </tr>
+        {% endfor %}
       </tbody>
     </table>
   </div>
+  <div id="audit-trail-load-more-wrapper" class="gcds-mt-100">
+    {% if next and has_next %}
+      <button id="audit-trail-load-more" class="gcds-button" data-next="{{ next|urlencode }}">Load more</button>
+    {% else %}
+      <div id="audit-trail-load-more" aria-hidden="true"></div>
+    {% endif %}
+  </div>
 </section>
+
+<template id="audit-trail-row-tpl">
+  <tr>
+    <td>
+      <div class="table-actions">
+        <span class="tpl-username"></span>
+        <span class="pill pill-muted tpl-unknown" style="display:none;"></span>
+      </div>
+    </td>
+    <td class="tpl-origin"></td>
+    <td class="tpl-result"></td>
+    <td class="tpl-country"></td>
+    <td><span class="js-local-datetime tpl-time" data-epoch-seconds=""></span></td>
+  </tr>
+</template>
+
+<script>
+(function(){
+  const btn = document.getElementById('audit-trail-load-more');
+  const tbody = document.getElementById('audit-trail-rows');
+  const tpl = document.getElementById('audit-trail-row-tpl');
+  if(!btn || !tbody || !tpl) return;
+
+  async function loadMore(){
+    const next = btn.getAttribute('data-next');
+    if(!next) return;
+    try{
+      btn.disabled = true;
+      btn.textContent = 'Loading...';
+      const resp = await fetch(`/applications/{{ app_id }}/usage?SEARCH_AFTER=${encodeURIComponent(next)}&append=1`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if(!resp.ok) throw new Error('Network error');
+      const data = await resp.json();
+      for(const ev of data.events || []){
+        const node = tpl.content.cloneNode(true);
+        const usernameEl = node.querySelector('.tpl-username');
+        const unknownEl = node.querySelector('.tpl-unknown');
+        usernameEl.textContent = ev.username || '';
+        if(!ev.username || ev.username.toUpperCase()==='UNKNOWN'){
+          usernameEl.textContent = '';
+          unknownEl.style.display = '';
+          unknownEl.textContent = '{{ t('applications.usage.audit_trail.unknown_tag') }}';
+        } else {
+          unknownEl.style.display = 'none';
+        }
+        node.querySelector('.tpl-origin').textContent = ev.origin || '';
+        node.querySelector('.tpl-result').textContent = ev.result || '';
+        node.querySelector('.tpl-country').textContent = ev.country || '';
+        const timeEl = node.querySelector('.tpl-time');
+        if(ev.timestamp){
+          timeEl.setAttribute('data-epoch-seconds', Math.floor(ev.timestamp/1000));
+          timeEl.textContent = Math.floor(ev.timestamp/1000);
+        }
+        tbody.appendChild(node);
+      }
+      // update next token and button
+      if(data.next){
+        btn.setAttribute('data-next', data.next);
+        btn.disabled = false;
+        btn.textContent = 'Load more';
+      } else {
+        btn.removeAttribute('data-next');
+        btn.hidden = true;
+      }
+      // trigger any client-side datetime formatting if present
+      if(window.applyLocalDates && typeof window.applyLocalDates === 'function'){
+        window.applyLocalDates();
+      }
+    }catch(err){
+      console.error('load more failed', err);
+      btn.disabled = false;
+      btn.textContent = 'Load more';
+    }
+  }
+
+  btn.addEventListener('click', function(e){
+    e.preventDefault();
+    loadMore();
+  });
+})();
+</script>
 {% endblock %}

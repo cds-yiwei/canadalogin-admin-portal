@@ -107,8 +107,18 @@ class AdminService:
                 prev_token = tokens.get("prev") if isinstance(tokens, dict) else None
             except Exception:
                 events = []
-        # Normalize into consistent dict shape
-        return {"events": events, "next": next_token, "prev": prev_token, "total": total}
+        # If the client already returned a dict with total, return it as-is (preserve any additional fields)
+        if isinstance(raw, dict):
+            # ensure keys exist
+            return {
+                "events": events,
+                "next": next_token,
+                "prev": prev_token,
+                "total": raw.get("total"),
+            }
+
+        # backward-compatible tuple/list response
+        return {"events": events, "next": next_token, "prev": prev_token, "total": None}
 
     async def get_client_secret(self, client_id: str) -> Dict[str, Any]:
         return await self._client.get_client_secret(client_id)

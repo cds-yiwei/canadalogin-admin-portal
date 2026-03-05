@@ -41,6 +41,21 @@
 
 <section class="gcds-mb-200">
   <gcds-heading tag="h2">{{ t('applications.usage.audit_trail_title') }}</gcds-heading>
-  {% include 'fragments/audit_trail_list.html' %}
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>{{ 'User' }}</th>
+          <th>{{ 'IP' }}</th>
+          <th>{{ 'Result' }}</th>
+          <th>{{ 'Country' }}</th>
+          <th>{{ 'Time' }}</th>
+        </tr>
+      </thead>
+      <tbody id="audit-trail-rows">
+        {% include 'fragments/audit_trail_rows.html' %}
+      </tbody>
+    </table>
+  </div>
 </section>
 {% endblock %}

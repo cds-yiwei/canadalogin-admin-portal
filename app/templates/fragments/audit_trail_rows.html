@@ -1,0 +1,55 @@
+{% for entry in audit_trail_rows %}
+  <tr>
+    <td>
+      <div class="table-actions">
+        <span>
+          {% if entry.username_known %}
+            {{ entry.username_display }}
+          {% else %}
+            {{ t('applications.usage.audit_trail.unknown_user') }}
+          {% endif %}
+        </span>
+        {% if not entry.username_known %}
+          <span class="pill pill-muted">{{ t('applications.usage.audit_trail.unknown_tag') }}</span>
+        {% endif %}
+      </div>
+    </td>
+    <td>{{ entry.origin_display }}</td>
+    <td>{{ entry.result }}</td>
+    <td>{{ entry.country }}</td>
+    <td>{% if entry.time_seconds %}<span class="js-local-datetime" data-epoch-seconds="{{ entry.time_seconds }}">{{ entry.time_seconds }}</span>{% else %}N/A{% endif %}</td>
+  </tr>
+{% endfor %}
+
+<div id="audit-trail-load-more-wrapper">
+  {% if next and has_next %}
+    <button id="audit-trail-load-more" class="gcds-button" hx-get="/applications/{{ app_id }}/usage?SEARCH_AFTER={{ next|urlencode }}&PAGE={{ current_page + 1 }}&append=1" hx-target="#audit-trail-rows" hx-swap="beforeend" hx-trigger="click">Load more</button>
+  {% else %}
+    <div id="audit-trail-load-more" aria-hidden="true"></div>
+  {% endif %}
+</div>
+
+<script>
+// Basic IntersectionObserver to auto-click the load-more button when visible
+(function(){
+  try{
+    const sentinel = document.getElementById('audit-trail-load-more');
+    if(!sentinel) return;
+    let busy = false;
+    const observer = new IntersectionObserver((entries)=>{
+      entries.forEach(entry=>{
+        if(entry.isIntersecting && !busy){
+          const btn = document.getElementById('audit-trail-load-more');
+          if(btn && btn.getAttribute('hx-get')){
+            busy = true;
+            btn.click();
+            // set a short timeout to avoid double-clicks; will be reset when new content loaded
+            setTimeout(()=>{busy = false;}, 800);
+          }
+        }
+      });
+    }, {root:null, rootMargin:'0px', threshold: 0.1});
+    observer.observe(sentinel);
+  }catch(e){console.warn('load-more init failed', e)}
+})();
+</script>

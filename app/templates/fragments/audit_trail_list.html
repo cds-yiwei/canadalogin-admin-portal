@@ -20,11 +20,11 @@
                     {% if entry.username_known %}
                       {{ entry.username_display }}
                     {% else %}
-                      {{ _('applications.usage.audit_trail.unknown_user') }}
+                      {{ t('applications.usage.audit_trail.unknown_user') }}
                     {% endif %}
                   </span>
                   {% if not entry.username_known %}
-                    <span class="pill pill-muted">{{ _('applications.usage.audit_trail.unknown_tag') }}</span>
+                    <span class="pill pill-muted">{{ t('applications.usage.audit_trail.unknown_tag') }}</span>
                   {% endif %}
                 </div>
               </td>

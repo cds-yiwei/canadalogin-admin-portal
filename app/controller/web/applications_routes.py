@@ -311,16 +311,17 @@ async def application_usage_page(
             "failed": report.failed_logins.doc_count,
             "unique_users": report.unique_users.value,
         }
-    # Read SEARCH_AFTER and SEARCH_DIR from headers (prefer headers)
-    # Prefer SEARCH_AFTER/SEARCH_DIR from request payload (form/json), fallback to headers
-    search_after = None
-    search_dir = None
+    # Read SEARCH_AFTER and SEARCH_DIR from query params first (used by HTMX GET),
+    # then prefer request payload (form/json), then headers as fallback
+    search_after = request.query_params.get("SEARCH_AFTER")
+    search_dir = request.query_params.get("SEARCH_DIR")
+
     try:
-        if request.headers.get("content-type", "").startswith("application/json"):
+        if not search_after and request.headers.get("content-type", "").startswith("application/json"):
             body = await request.json()
             search_after = body.get("SEARCH_AFTER")
             search_dir = body.get("SEARCH_DIR")
-        else:
+        elif not search_after:
             form = await request.form()
             search_after = form.get("SEARCH_AFTER")
             search_dir = form.get("SEARCH_DIR")

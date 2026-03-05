@@ -80,7 +80,7 @@
   </div>
   <div id="audit-trail-load-more-wrapper" class="gcds-mt-100">
     {% if next and has_next %}
-      <button id="audit-trail-load-more" class="gcds-button" data-next="{{ next|urlencode }}">Load more</button>
+      <button id="audit-trail-load-more" class="gcds-button" data-next="{{ next }}">Load more</button>
     {% else %}
       <div id="audit-trail-load-more" aria-hidden="true"></div>
     {% endif %}

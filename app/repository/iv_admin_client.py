@@ -266,6 +266,17 @@ class IBMVerifyAdminClient:
             logger.debug(f"app_audit_trail_search_after: response_status={response.status_code} response_text={getattr(response, 'text', repr(response))}")
         except Exception:
             logger.debug("app_audit_trail_search_after: response received (non-text)")
+        # If upstream reports this report config doesn't exist, fallback gracefully
+        if response.status_code == 400:
+            try:
+                body = response.json()
+                msg = str(body.get("messageDescription") or body.get("messageId") or body)
+            except Exception:
+                msg = getattr(response, "text", "")
+            if "app_audit_trail_search_after" in msg:
+                logger.warning("app_audit_trail_search_after not supported by tenant, falling back to initial report endpoint")
+                # Fall back: call initial report endpoint and return normalized result
+                return await self.get_application_audit_trail(application_id, from_date, to_date, size, "time", "DESC")
         self._handle_response(response)
         payload = response.json()
         # Normalize payload similar to get_application_audit_trail

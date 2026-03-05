@@ -272,9 +272,25 @@ class IBMVerifyAdminClient:
         events = []
         next_token = None
         prev_token = None
+        total = None
         try:
             report = payload.get("response", {}).get("report", {})
             hits = report.get("hits", []) if isinstance(report, dict) else []
+            # robustly extract total (int, dict.value, or numeric string)
+            raw_total = None
+            if isinstance(report, dict):
+                raw_total = report.get("total")
+            if raw_total is None:
+                raw_total = payload.get("response", {}).get("report", {}).get("total")
+            if isinstance(raw_total, dict):
+                total = raw_total.get("value")
+            elif isinstance(raw_total, int):
+                total = raw_total
+            elif isinstance(raw_total, str):
+                try:
+                    total = int(raw_total)
+                except Exception:
+                    total = None
             for hit in hits:
                 _id = hit.get("_id")
                 sort = hit.get("sort") or []
@@ -319,7 +335,7 @@ class IBMVerifyAdminClient:
                     next_token = f'{last_ts}, "{last_id}"'
         except Exception:
             pass
-        normalized = {"events": events, "next": next_token, "prev": prev_token}
+        normalized = {"events": events, "next": next_token, "prev": prev_token, "total": total}
         logger.debug(f"app_audit_trail_search_after: normalized={normalized}")
         return normalized
 

@@ -360,7 +360,11 @@ async def application_usage_page(
         payload_for_parse = audit_trail_result
 
     # Parse audit trail rows from the normalized payload
-    audit_trail_rows = parse_audit_trail(payload_for_parse)
+    # Ensure we always pass a dict with 'events' key to _parse_audit_trail
+    if isinstance(payload_for_parse, dict) and 'events' in payload_for_parse:
+        audit_trail_rows = parse_audit_trail(payload_for_parse)
+    else:
+        audit_trail_rows = parse_audit_trail({'events': payload_for_parse if payload_for_parse is not None else []})
 
     # Log first row for debugging (if present)
     try:

@@ -367,6 +367,20 @@ async def application_usage_page(
     except Exception:
         logger.debug("application_usage_page: events or tokens unavailable")
 
+    # Support a debug JSON output for quick inspection: ?debug=1
+    if request.query_params.get("debug") == "1":
+        from fastapi.responses import JSONResponse
+
+        try:
+            return JSONResponse({"events": events or [], "tokens": tokens})
+        except Exception:
+            return JSONResponse({"events": [], "tokens": {}})
+
+    # Only attempt to parse audit trail rows when events is a list
+    if not isinstance(events, list):
+        events = []
+    audit_trail_rows = parse_audit_trail(events)
+
     return templates.TemplateResponse(
         request,
         "applications/usage.html",

@@ -77,10 +77,10 @@ class AdminService:
         size: int = 25,
         search_after: Optional[str] = None,
         search_dir: Optional[str] = None,
-    ) -> tuple:
+    ) -> Dict[str, Any]:
         """Call repository search_after API and normalize results.
 
-        Returns: (events_list, tokens_dict)
+        Returns: dict {"events": [...], "next": str|None, "prev": str|None}
         """
         raw = await self._client.app_audit_trail_search_after(
             application_id,
@@ -91,9 +91,24 @@ class AdminService:
             search_dir=search_dir,
         )
         # raw expected to be dict with 'events' and optional 'next'/'prev'
-        events = raw.get("events") if isinstance(raw, dict) else (raw["events"] if raw and isinstance(raw, (list, tuple)) else [])
-        tokens = {"next": raw.get("next"), "prev": raw.get("prev")} if isinstance(raw, dict) else {}
-        return events, tokens
+        events = []
+        next_token = None
+        prev_token = None
+        if isinstance(raw, dict):
+            events = raw.get("events") or []
+            next_token = raw.get("next")
+            prev_token = raw.get("prev")
+        elif raw and isinstance(raw, (list, tuple)):
+            # backward-compatible: if client returned tuple (events, tokens)
+            try:
+                events = raw[0] or []
+                tokens = raw[1] if len(raw) > 1 else {}
+                next_token = tokens.get("next") if isinstance(tokens, dict) else None
+                prev_token = tokens.get("prev") if isinstance(tokens, dict) else None
+            except Exception:
+                events = []
+        # Normalize into consistent dict shape
+        return {"events": events, "next": next_token, "prev": prev_token}
 
     async def get_client_secret(self, client_id: str) -> Dict[str, Any]:
         return await self._client.get_client_secret(client_id)

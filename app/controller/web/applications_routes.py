@@ -406,6 +406,18 @@ async def application_usage_page(
     except Exception:
         has_next = len(events or []) >= int(size)
 
+    # Synthesize prev token if upstream didn't provide one but we are beyond page 1
+    prev_token = tokens.get("prev") if isinstance(tokens, dict) else None
+    if not prev_token and events and isinstance(current_page, int) and current_page > 1:
+        try:
+            first = events[0]
+            if isinstance(first, dict) and first.get("timestamp") and first.get("id"):
+                prev_token = f'{first.get("timestamp")}, "{first.get("id")}"'
+        except Exception:
+            prev_token = None
+    # Use synthesized or upstream prev_token
+    tokens["prev"] = prev_token
+
     # Support a debug JSON output for quick inspection: ?debug=1
     if request.query_params.get("debug") == "1":
         from fastapi.responses import JSONResponse

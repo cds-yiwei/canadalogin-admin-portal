@@ -152,14 +152,14 @@ class IBMVerifyAdminClient:
             "SORT_BY": sort_by or "time",
             "SORT_ORDER": normalized_sort_order,
         }
-        # Log outgoing payload and response for initial audit_trail calls
-        logger.info("get_application_audit_trail: payload=%s", payload)
+        # Log outgoing payload and response for initial audit_trail calls (use f-strings for loguru)
+        logger.info(f"get_application_audit_trail: payload={payload}")
         response = await self._client.post(
             f"{self._base_url}/v1.0/reports/app_audit_trail",
             json=payload,
         )
         try:
-            logger.info("get_application_audit_trail: response_status=%s response_text=%s", response.status_code, response.text)
+            logger.info(f"get_application_audit_trail: response_status={response.status_code} response_text={getattr(response, 'text', repr(response))}")
         except Exception:
             logger.info("get_application_audit_trail: response received (non-text)")
         self._handle_response(response)
@@ -196,13 +196,13 @@ class IBMVerifyAdminClient:
         if search_dir:
             payload["SEARCH_DIR"] = search_dir
         # Log outgoing payload and (later) response for debugging
-        logger.debug("app_audit_trail_search_after: payload=%s", payload)
+        logger.debug(f"app_audit_trail_search_after: payload={payload}")
         response = await self._client.post(
             f"{self._base_url}/v1.0/reports/app_audit_trail_search_after",
             json=payload,
         )
         try:
-            logger.debug("app_audit_trail_search_after: response_status=%s response_text=%s", response.status_code, response.text)
+            logger.debug(f"app_audit_trail_search_after: response_status={response.status_code} response_text={getattr(response, 'text', repr(response))}")
         except Exception:
             logger.debug("app_audit_trail_search_after: response received (non-text)")
         self._handle_response(response)

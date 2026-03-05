@@ -358,6 +358,15 @@ async def application_usage_page(
 
     audit_trail_rows = parse_audit_trail(events)
 
+    # Log first row for debugging (if present)
+    try:
+        if audit_trail_rows:
+            logger.debug(f"application_usage_page: first_row=%s" % (audit_trail_rows[0]))
+        else:
+            logger.debug("application_usage_page: audit_trail_rows empty")
+    except Exception:
+        logger.debug("application_usage_page: unable to log audit_trail_rows")
+
     locale = get_request_locale(request)
     breadcrumb_label = app_name or application_id
 

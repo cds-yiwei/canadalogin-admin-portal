@@ -418,6 +418,19 @@ async def application_usage_page(
         try:
             # For append JSON responses, use _parse_audit_trail to apply server-side marking (username_known, username_display, origin_display, time_seconds)
             parsed_rows = parse_audit_trail({'events': events or []})
+            # add backward-compatible timestamp fields (ms) so client JS can use ev.timestamp
+            for r in parsed_rows:
+                try:
+                    secs = r.get('time_seconds')
+                    if secs:
+                        r['timestamp_ms'] = int(secs) * 1000
+                        r['timestamp'] = r['timestamp_ms']
+                    else:
+                        r['timestamp_ms'] = None
+                        r['timestamp'] = None
+                except Exception:
+                    r['timestamp_ms'] = None
+                    r['timestamp'] = None
             return JSONResponse({"events": parsed_rows, "next": tokens.get("next"), "total": total_count, "has_next": has_next})
         except Exception:
             return JSONResponse({"events": [], "next": None, "prev": None, "total": None, "has_next": False})

@@ -144,15 +144,16 @@
         const node = tpl.content.cloneNode(true);
         const usernameEl = node.querySelector('.tpl-username');
         const unknownEl = node.querySelector('.tpl-unknown');
-        usernameEl.textContent = ev.username || '';
-        if(!ev.username || ev.username.toUpperCase()==='UNKNOWN'){
+        // Prefer server-marked fields
+        if(ev.username_known){
+          usernameEl.textContent = ev.username_display || ev.username || '';
+          unknownEl.style.display = 'none';
+        } else {
           usernameEl.textContent = '';
           unknownEl.style.display = '';
           unknownEl.textContent = '{{ t('applications.usage.audit_trail.unknown_tag') }}';
-        } else {
-          unknownEl.style.display = 'none';
         }
-        node.querySelector('.tpl-origin').textContent = ev.origin || '';
+        node.querySelector('.tpl-origin').textContent = ev.origin_display || ev.origin || '';
         node.querySelector('.tpl-result').textContent = ev.result || '';
         node.querySelector('.tpl-country').textContent = ev.country || '';
         const timeEl = node.querySelector('.tpl-time');

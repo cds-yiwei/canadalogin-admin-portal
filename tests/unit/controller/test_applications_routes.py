@@ -1,5 +1,4 @@
 import pytest
-from fastapi import Request
 from starlette.datastructures import Headers
 from app.controller.web import applications_routes
 
@@ -9,9 +8,6 @@ class DummyService:
 
 @pytest.mark.asyncio
 async def test_usage_route_reads_search_after(monkeypatch):
-    req = Request({'type': 'http'})
-    # Simulate headers
-    req._headers = Headers({"SEARCH_AFTER": '1554479231870, "uuid"', "HX-Request": "true"})
-    monkeypatch.setattr(applications_routes, 'get_admin_service', lambda: DummyService())
-    # Call handler directly is complex; at minimum ensure header reading logic exists by importing
-    assert hasattr(applications_routes, 'usage')
+    # Verify the router exposes the usage path
+    router = applications_routes.router
+    assert any(r.path == "/applications/{application_id}/usage" for r in router.routes)

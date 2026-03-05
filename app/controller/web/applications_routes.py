@@ -347,21 +347,24 @@ async def application_usage_page(
     # parse audit trail rows using helper in utils
     from app.controller.web._utils import _parse_audit_trail as parse_audit_trail
 
-    # audit_trail_result may be raw dict from service; normalize
+    # audit_trail_result may be raw dict from service; normalize and prepare payload for parse
     if isinstance(audit_trail_result, tuple) or isinstance(audit_trail_result, list):
         # expected (events, tokens)
         events = audit_trail_result[0]
         tokens = audit_trail_result[1] if len(audit_trail_result) > 1 else {}
+        payload_for_parse = {"events": events}
     else:
         events = audit_trail_result.get("events", [])
         tokens = {"next": audit_trail_result.get("next"), "prev": audit_trail_result.get("prev")}
+        payload_for_parse = audit_trail_result
 
-    audit_trail_rows = parse_audit_trail(events)
+    # Parse audit trail rows from the normalized payload
+    audit_trail_rows = parse_audit_trail(payload_for_parse)
 
     # Log first row for debugging (if present)
     try:
         if audit_trail_rows:
-            logger.debug(f"application_usage_page: first_row=%s" % (audit_trail_rows[0]))
+            logger.debug(f"application_usage_page: first_row={audit_trail_rows[0]}")
         else:
             logger.debug("application_usage_page: audit_trail_rows empty")
     except Exception:
@@ -385,10 +388,9 @@ async def application_usage_page(
         except Exception:
             return JSONResponse({"events": [], "tokens": {}})
 
-    # Only attempt to parse audit trail rows when events is a list
+    # Ensure events is a list for template
     if not isinstance(events, list):
         events = []
-    audit_trail_rows = parse_audit_trail(events)
 
     return templates.TemplateResponse(
         request,

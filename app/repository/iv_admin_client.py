@@ -117,9 +117,9 @@ class IBMVerifyAdminClient:
         to_date: Optional[str] = None,
     ) -> Dict[str, Any]:
         now = datetime.now()
-        past_24_hours = now - timedelta(hours=24)
+        past_7_days = now - timedelta(days=7)
         to_timestamp = to_date or str(int(now.timestamp() * 1000))
-        from_timestamp = from_date or str(int(past_24_hours.timestamp() * 1000))
+        from_timestamp = from_date or str(int(past_7_days.timestamp() * 1000))
         payload = {"APPID": application_id, "FROM": from_timestamp, "TO": to_timestamp}
         response = await self._client.post(
             f"{self._base_url}/v1.0/reports/app_total_logins",
@@ -138,9 +138,9 @@ class IBMVerifyAdminClient:
         sort_order: str = "DESC",
     ) -> Dict[str, Any]:
         now = datetime.now()
-        past_24_hours = now - timedelta(hours=24)
+        past_7_days = now - timedelta(days=7)
         to_timestamp = to_date or str(int(now.timestamp() * 1000))
-        from_timestamp = from_date or str(int(past_24_hours.timestamp() * 1000))
+        from_timestamp = from_date or str(int(past_7_days.timestamp() * 1000))
         normalized_sort_order = (sort_order or "DESC").upper()
         if normalized_sort_order not in {"ASC", "DESC"}:
             normalized_sort_order = "DESC"
@@ -240,9 +240,9 @@ class IBMVerifyAdminClient:
             Parsed JSON response as dict
         """
         now = datetime.now()
-        past_24_hours = now - timedelta(hours=24)
+        past_7_days = now - timedelta(days=7)
         to_timestamp = to_date or str(int(now.timestamp() * 1000))
-        from_timestamp = from_date or str(int(past_24_hours.timestamp() * 1000))
+        from_timestamp = from_date or str(int(past_7_days.timestamp() * 1000))
         payload = {
             "APPID": application_id,
             "FROM": from_timestamp,

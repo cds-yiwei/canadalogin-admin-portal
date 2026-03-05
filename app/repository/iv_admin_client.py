@@ -152,16 +152,14 @@ class IBMVerifyAdminClient:
             "SORT_BY": sort_by or "time",
             "SORT_ORDER": normalized_sort_order,
         }
-        # Log outgoing payload and response for initial audit_trail calls (use f-strings for loguru)
-        logger.info(f"get_application_audit_trail: payload={payload}")
         response = await self._client.post(
             f"{self._base_url}/v1.0/reports/app_audit_trail",
             json=payload,
         )
         try:
-            logger.info(f"get_application_audit_trail: response_status={response.status_code} response_text={getattr(response, 'text', repr(response))}")
+            _ = response.status_code
         except Exception:
-            logger.info("get_application_audit_trail: response received (non-text)")
+            pass
         self._handle_response(response)
         payload = response.json()
         # Normalize payload (support upstream response.report.hits)
@@ -223,7 +221,6 @@ class IBMVerifyAdminClient:
         except Exception:
             pass
         normalized = {"events": events, "next": next_token, "total": total}
-        logger.debug(f"app_audit_trail_search_after: normalized={normalized}")
         return normalized
 
     async def app_audit_trail_search_after(self, application_id: str, from_date: Optional[str] = None, to_date: Optional[str] = None, size: int = 25, search_after: Optional[str] = None, search_dir: Optional[str] = None) -> Dict[str, Any]:
@@ -257,15 +254,14 @@ class IBMVerifyAdminClient:
         if search_dir:
             payload["SEARCH_DIR"] = search_dir
         # Log outgoing payload and (later) response for debugging
-        logger.debug(f"app_audit_trail_search_after: payload={payload}")
         response = await self._client.post(
             f"{self._base_url}/v1.0/reports/app_audit_trail_search_after",
             json=payload,
         )
         try:
-            logger.debug(f"app_audit_trail_search_after: response_status={response.status_code} response_text={getattr(response, 'text', repr(response))}")
+            _ = response.status_code
         except Exception:
-            logger.debug("app_audit_trail_search_after: response received (non-text)")
+            pass
         # If upstream reports this report config doesn't exist, fallback gracefully
         if response.status_code == 400:
             try:
@@ -347,7 +343,6 @@ class IBMVerifyAdminClient:
         except Exception:
             pass
         normalized = {"events": events, "next": next_token, "total": total}
-        logger.debug(f"app_audit_trail_search_after: normalized={normalized}")
         return normalized
 
     async def get_client_secret(self, client_id: str) -> Dict[str, Any]:

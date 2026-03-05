@@ -370,7 +370,7 @@ async def application_usage_page(
             "app_name": app_name or application_id,
             "total_logins": total_logins,
             "total_logins_summary": total_logins_summary,
-            "audit_trail": audit_trail,
+            "audit_trail": events,
             "audit_trail_rows": audit_trail_rows,
             "title": translate(locale, "applications.usage.title"),
             "description": translate(locale, "applications.usage.description"),

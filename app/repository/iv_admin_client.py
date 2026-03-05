@@ -248,7 +248,61 @@ class IBMVerifyAdminClient:
         except Exception:
             logger.debug("app_audit_trail_search_after: response received (non-text)")
         self._handle_response(response)
-        return response.json()
+        payload = response.json()
+        # Normalize payload similar to get_application_audit_trail
+        events = []
+        next_token = None
+        prev_token = None
+        try:
+            report = payload.get("response", {}).get("report", {})
+            hits = report.get("hits", []) if isinstance(report, dict) else []
+            for hit in hits:
+                _id = hit.get("_id")
+                sort = hit.get("sort") or []
+                if sort and isinstance(sort, list) and len(sort) >= 1:
+                    timestamp = sort[0]
+                else:
+                    timestamp = hit.get("_source", {}).get("time")
+                src = hit.get("_source", {})
+                data = src.get("data", {}) if isinstance(src, dict) else {}
+                geo = src.get("geoip", {}) if isinstance(src, dict) else {}
+                events.append(
+                    {
+                        "id": _id,
+                        "timestamp": timestamp,
+                        "username": data.get("username") or data.get("userid"),
+                        "origin": data.get("origin"),
+                        "result": data.get("result"),
+                        "country": geo.get("country_name") or geo.get("country_iso_code"),
+                    }
+                )
+            if hits:
+                first = hits[0]
+                first_sort = first.get("sort") or []
+                # For prev token, use first item's sort
+                if first_sort and len(first_sort) >= 2:
+                    first_ts = first_sort[0]
+                    first_id = first_sort[1]
+                else:
+                    first_ts = first.get("_source", {}).get("time")
+                    first_id = first.get("_id")
+                if first_ts and first_id:
+                    prev_token = f'{first_ts}, "{first_id}"'
+                last = hits[-1]
+                last_sort = last.get("sort") or []
+                if last_sort and len(last_sort) >= 2:
+                    last_ts = last_sort[0]
+                    last_id = last_sort[1]
+                else:
+                    last_ts = last.get("_source", {}).get("time")
+                    last_id = last.get("_id")
+                if last_ts and last_id:
+                    next_token = f'{last_ts}, "{last_id}"'
+        except Exception:
+            pass
+        normalized = {"events": events, "next": next_token, "prev": prev_token}
+        logger.debug(f"app_audit_trail_search_after: normalized={normalized}")
+        return normalized
 
     async def get_client_secret(self, client_id: str) -> Dict[str, Any]:
 

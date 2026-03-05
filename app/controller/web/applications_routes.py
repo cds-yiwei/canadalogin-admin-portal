@@ -363,7 +363,7 @@ async def application_usage_page(
 
     # Temporary debug log to inspect audit trail data when rendering the page
     try:
-        logger.debug("application_usage_page: events_count=%s tokens=%s", len(events) if events is not None else 0, tokens)
+        logger.debug(f"application_usage_page: events_count={len(events) if events is not None else 0} tokens={tokens}")
     except Exception:
         logger.debug("application_usage_page: events or tokens unavailable")
 

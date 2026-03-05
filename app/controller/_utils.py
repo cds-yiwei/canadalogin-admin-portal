@@ -305,7 +305,44 @@ def _parse_audit_trail(raw_payload: Any) -> list[dict[str, Any]]:
     """Parse and transform audit trail response from IBM Verify API.
 
     Extracts hits, masks sensitive data (emails, IPs), and normalizes timestamps.
+
+    Accepts either the upstream shape (dict with response.report.hits) or a normalized
+    dict with key 'events' containing a list of flattened event dicts (id, timestamp, username, origin, result, country).
     """
+    # If caller passed a normalized dict (from iv_admin_client), accept it directly
+    if isinstance(raw_payload, dict) and "events" in raw_payload:
+        events = raw_payload.get("events") or []
+        rows: list[dict[str, Any]] = []
+        for ev in events:
+            username_raw = str(ev.get("username") or ev.get("userid") or "").strip()
+            username_known = bool(username_raw) and username_raw.upper() != "UNKNOWN"
+            origin_raw = str(ev.get("origin") or "").strip()
+            ip_version: int | None = None
+            if origin_raw:
+                try:
+                    ip_version = ip_address(origin_raw).version
+                except ValueError:
+                    ip_version = None
+            result_raw = str(ev.get("result") or "").strip().lower()
+            time_seconds = _normalize_epoch_seconds(ev.get("timestamp"))
+            country = str(ev.get("country") or "").strip()
+            username_display = _mask_email(username_raw) if username_known else ""
+            origin_display = _mask_ip(origin_raw)
+            rows.append(
+                {
+                    "username": username_raw,
+                    "username_display": username_display,
+                    "username_known": username_known,
+                    "origin": origin_raw,
+                    "origin_display": origin_display,
+                    "ip_version": ip_version,
+                    "result": result_raw,
+                    "time_seconds": time_seconds,
+                    "country": country,
+                }
+            )
+        return rows
+
     parsed_payload: ApplicationAuditTrailResponse | None = None
     try:
         parsed_payload = ApplicationAuditTrailResponse.model_validate(raw_payload)

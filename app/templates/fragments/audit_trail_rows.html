@@ -29,27 +29,3 @@
   {% endif %}
 </div>
 
-<script>
-// Basic IntersectionObserver to auto-click the load-more button when visible
-(function(){
-  try{
-    const sentinel = document.getElementById('audit-trail-load-more');
-    if(!sentinel) return;
-    let busy = false;
-    const observer = new IntersectionObserver((entries)=>{
-      entries.forEach(entry=>{
-        if(entry.isIntersecting && !busy){
-          const btn = document.getElementById('audit-trail-load-more');
-          if(btn && btn.getAttribute('hx-get')){
-            busy = true;
-            btn.click();
-            // set a short timeout to avoid double-clicks; will be reset when new content loaded
-            setTimeout(()=>{busy = false;}, 800);
-          }
-        }
-      });
-    }, {root:null, rootMargin:'0px', threshold: 0.1});
-    observer.observe(sentinel);
-  }catch(e){console.warn('load-more init failed', e)}
-})();
-</script>

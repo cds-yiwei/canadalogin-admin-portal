@@ -368,23 +368,10 @@ async def application_usage_page(
     else:
         audit_trail_rows = parse_audit_trail({'events': payload_for_parse if payload_for_parse is not None else []})
 
-    # Log first row for debugging (if present)
-    try:
-        if audit_trail_rows:
-            logger.debug(f"application_usage_page: first_row={audit_trail_rows[0]}")
-        else:
-            logger.debug("application_usage_page: audit_trail_rows empty")
-    except Exception:
-        logger.debug("application_usage_page: unable to log audit_trail_rows")
 
     locale = get_request_locale(request)
     breadcrumb_label = app_name or application_id
 
-    # Temporary debug log to inspect audit trail data when rendering the page
-    try:
-        logger.debug(f"application_usage_page: events_count={len(events) if events is not None else 0} tokens={tokens} total={audit_trail_result.get('total') if isinstance(audit_trail_result, dict) else None} size={size}")
-    except Exception:
-        logger.debug("application_usage_page: events or tokens unavailable")
 
     # Determine has_next based on total and current_page * size
     total_count = None

@@ -1,334 +1,340 @@
 app:
-  title: "Administration de Connexion Canada"
-  description: "Portail d'administration de Connexion Canada pour examiner les demandes d'acces"
+  title: Administration de Connexion Canada
+  description: Portail d'administration de Connexion Canada pour examiner les demandes
+    d'acces
 nav:
-  home: "Administration de Connexion Canada"
-  menu_label: "Navigation principale"
-  dashboard: "Tableau de bord"
-  applications: "Applications"
-  requests: "Demandes"
-  profile: "Profil"
-  users_api: "API des utilisateurs"
-  my_profile_api: "API de mon profil"
-  support: "Soutien"
-  sign_out: "Se deconnecter"
-  sign_in: "Se connecter"
-  switch_to_fr: "Francais"
-  switch_to_en: "English"
-  account: "Compte"
+  home: Administration de Connexion Canada
+  menu_label: Navigation principale
+  dashboard: Tableau de bord
+  applications: Applications
+  requests: Demandes
+  profile: Profil
+  users_api: API des utilisateurs
+  my_profile_api: API de mon profil
+  support: Soutien
+  sign_out: Se deconnecter
+  sign_in: Se connecter
+  switch_to_fr: Francais
+  switch_to_en: English
+  account: Compte
 breadcrumbs:
-  dashboard: "Tableau de bord"
-  applications: "Applications"
-  profile: "Profil"
-  sign_in: "Se connecter"
-  home: "Administration de Connexion Canada"
+  dashboard: Tableau de bord
+  applications: Applications
+  profile: Profil
+  sign_in: Se connecter
+  home: Administration de Connexion Canada
 home:
-  title: "Tableau de bord"
-  description: "Tableau de bord d'administration de Connexion Canada pour examiner les demandes d'acces"
-  welcome: "Bienvenue, {name}"
-  subtitle: "Utilisez ce tableau de bord pour examiner et approuver les demandes."
-  profile_section: "Profil"
-  actions_section: "Actions"
-  requests_section: "Demandes (ilot interactif)"
-  user_id: "ID utilisateur"
-  email: "Courriel"
-  roles: "Roles"
-  current_role: "Role actuel"
-  user_name: "Nom d'utilisateur"
-  applications_total: "Applications"
-  create_application: "Creer une application"
-  view_applications: "Voir les applications"
-  view_users_api: "Voir les utilisateurs (API)"
-  sign_out: "Se deconnecter"
-  loading_requests: "Chargement du panneau interactif..."
-  user_name: "Nom d'utilisateur"
+  title: Tableau de bord
+  description: Tableau de bord d'administration de Connexion Canada pour examiner
+    les demandes d'acces
+  welcome: Bienvenue, {name}
+  subtitle: Utilisez ce tableau de bord pour examiner et approuver les demandes.
+  profile_section: Profil
+  actions_section: Actions
+  requests_section: Demandes (ilot interactif)
+  user_id: ID utilisateur
+  email: Courriel
+  roles: Roles
+  current_role: Role actuel
+  user_name: Nom d'utilisateur
+  applications_total: Applications
+  create_application: Creer une application
+  view_applications: Voir les applications
+  view_users_api: Voir les utilisateurs (API)
+  sign_out: Se deconnecter
+  loading_requests: Chargement du panneau interactif...
 applications:
-  title: "Vos applications"
-  description: "Applications que vous possedez dans IBM Verify"
-  summary_title: "Apercu"
-  total_label: "Nombre d'applications :"
-  list_title: "Liste des applications"
-  create_button: "Creer"
+  title: Vos applications
+  description: Applications que vous possedez dans IBM Verify
+  summary_title: Apercu
+  total_label: 'Nombre d''applications :'
+  list_title: Liste des applications
+  create_button: Creer
   create:
-    title: "Creer une application"
-    description: "Configurer une nouvelle application dans IBM Verify."
-    back_to_list: "Retour aux applications"
-    name_placeholder: "Nom de l'application"
-    company_name_placeholder: "Nom de l'entreprise"
-    description_placeholder: "Courte description"
-    application_url_placeholder: "https://exemple.gc.ca"
-    redirect_url_placeholder: "https://exemple.gc.ca/retour"
-    redirect_url_help: "Une URL par ligne."
-    scopes_help: "openid est obligatoire par defaut. Scopes optionnels disponibles : profile, email, phone, language."
-    pkce_help: "Exiger la verification PKCE."
-    owners_help: "Les proprietaires sont definis a votre ID utilisateur pour l'instant."
-    placeholder_note: "La soumission va creer l'application dans Verify."
+    title: Creer une application
+    description: Configurer une nouvelle application dans IBM Verify.
+    back_to_list: Retour aux applications
+    name_placeholder: Nom de l'application
+    company_name_placeholder: Nom de l'entreprise
+    description_placeholder: Courte description
+    application_url_placeholder: https://exemple.gc.ca
+    redirect_url_placeholder: https://exemple.gc.ca/retour
+    redirect_url_help: Une URL par ligne.
+    scopes_help: 'openid est obligatoire par defaut. Scopes optionnels disponibles
+      : profile, email, phone, language.'
+    pkce_help: Exiger la verification PKCE.
+    owners_help: Les proprietaires sont definis a votre ID utilisateur pour l'instant.
+    placeholder_note: La soumission va creer l'application dans Verify.
     labels:
-      client_type: "Type de client"
-      client_auth_method: "Methode d'authentification du client"
-      post_logout_redirect_uris: "URI de redirection apres deconnexion"
-      logout_uri: "URI de deconnexion"
-      logout_method: "Methode de deconnexion"
-      scopes: "Scopes demandes"
-      jwks_uri: "URI JWKS"
-      owners: "Proprietaires"
+      client_type: Type de client
+      client_auth_method: Methode d'authentification du client
+      post_logout_redirect_uris: URI de redirection apres deconnexion
+      logout_uri: URI de deconnexion
+      logout_method: Methode de deconnexion
+      scopes: Scopes demandes
+      jwks_uri: URI JWKS
+      owners: Proprietaires
     client_type:
-      confidential: "Confidentiel"
-      public: "Public"
+      confidential: Confidentiel
+      public: Public
     client_auth_method:
-      choose: "Choisissez une methode d'authentification"
-    post_logout_redirect_placehoder: "https://exemple.gc.ca/logout-callback"
-    post_logout_redirect_help: "Une URL par ligne."
-    logout_uri_placeholder: "https://exemple.gc.ca/logout"
+      choose: Choisissez une methode d'authentification
+    post_logout_redirect_placehoder: https://exemple.gc.ca/logout-callback
+    post_logout_redirect_help: Une URL par ligne.
+    logout_uri_placeholder: https://exemple.gc.ca/logout
     logout_method:
-      none: "Aucune"
-      back_channel: "Deconnexion back-channel"
-      front_channel: "Deconnexion front-channel"
-    jwks_uri_placeholder: "https://exemple.gc.ca/.well-known/jwks.json"
-    jwks_uri_help: "Fournissez l'URI JWKS pour private_key_jwt."
+      none: Aucune
+      back_channel: Deconnexion back-channel
+      front_channel: Deconnexion front-channel
+    jwks_uri_placeholder: https://exemple.gc.ca/.well-known/jwks.json
+    jwks_uri_help: Fournissez l'URI JWKS pour private_key_jwt.
     private_key_jwt:
-      title: "Parametres private_key_jwt"
+      title: Parametres private_key_jwt
     single_logout:
-      title: "Deconnexion unique"
+      title: Deconnexion unique
     sections:
-      application_info: "Infos sur l'application"
-      oidc_settings: "Parametres OIDC"
-      basic_oidc: "OIDC de base"
-      client_settings: "Parametres du client"
-      single_logout: "Deconnexion unique"
-      owners: "Proprietaires"
-    submit: "Creer"
-    add_owner_button: "Ajouter proprietaire"
-    no_owners_added: "Aucun proprietaire ajoute"
+      application_info: Infos sur l'application
+      oidc_settings: Parametres OIDC
+      basic_oidc: OIDC de base
+      client_settings: Parametres du client
+      single_logout: Deconnexion unique
+      owners: Proprietaires
+    submit: Creer
+    add_owner_button: Ajouter proprietaire
+    no_owners_added: Aucun proprietaire ajoute
     add_owner_modal:
-      title: "Ajouter proprietaire"
-      search_label: "Rechercher par nom d'utilisateur"
-      search_placeholder: "Entrez le nom d'utilisateur a rechercher"
-      no_results: "Aucun utilisateur trouve"
-    toast_success_title: "Application creee"
-    toast_success_body: "Votre application est prete."
-    toast_error_title: "Echec de creation"
-    toast_error_body: "Impossible de creer l'application. Reessayez."
+      title: Ajouter proprietaire
+      search_label: Rechercher par nom d'utilisateur
+      search_placeholder: Entrez le nom d'utilisateur a rechercher
+      no_results: Aucun utilisateur trouve
+    toast_success_title: Application creee
+    toast_success_body: Votre application est prete.
+    toast_error_title: Echec de creation
+    toast_error_body: Impossible de creer l'application. Reessayez.
   usage:
-    title: "Utilisation de l'application"
-    description: "Donnees d'utilisation pour {name}."
-    back_to_detail: "Retour aux details"
-    total_logins_title: "Connexions totales"
+    title: Utilisation de l'application
+    description: Donnees d'utilisation pour {name}.
+    back_to_detail: Retour aux details
+    total_logins_title: Connexions totales
     total_logins:
-      successful: "Connexions reussies"
-      failed: "Connexions echouees"
-      unique_users: "Utilisateurs uniques"
-    audit_trail_title: "Historique d'audit"
+      successful: Connexions reussies
+      failed: Connexions echouees
+      unique_users: Utilisateurs uniques
+    audit_trail_title: Historique d'audit
     audit_trail:
       table:
-        user: "Nom d'utilisateur"
-        ip: "Adresse IP"
-        result: "Resultat"
-        country: "Pays"
-        time: "Heure locale"
-      status_success: "Reussite"
-      status_failure: "Echec"
-      status_unknown: "Inconnu"
-      unknown_user: "Utilisateur inconnu"
-      unknown_tag: "Inconnu"
-      unknown_ip: "IP inconnue"
-      ip_unknown_tag: "IP?"
-      unknown_country: "Pays inconnu"
-      empty: "Aucun evenement d'audit trouve."
+        user: Nom d'utilisateur
+        ip: Adresse IP
+        result: Resultat
+        country: Pays
+        time: Heure locale
+      status_success: Reussite
+      status_failure: Echec
+      status_unknown: Inconnu
+      unknown_user: Utilisateur inconnu
+      unknown_tag: Inconnu
+      unknown_ip: IP inconnue
+      ip_unknown_tag: IP?
+      unknown_country: Pays inconnu
+      empty: Aucun evenement d'audit trouve.
+    load_more: Charger plus
+    loading: Chargement…
   detail:
-    title: "Details de l'application"
-    description: "Details pour l'application selectionnee."
-    back_to_list: "Retour aux applications"
-    delete_confirm: "Supprimer cette application? Cette action est definitive."
-    delete_success_title: "Application supprimee"
-    delete_success_body: "L'application a ete supprimee avec succes."
-    delete_error_title: "Echec de suppression"
-    delete_error_body: "Impossible de supprimer l'application. Reessayez."
+    title: Details de l'application
+    description: Details pour l'application selectionnee.
+    back_to_list: Retour aux applications
+    delete_confirm: Supprimer cette application? Cette action est definitive.
+    delete_success_title: Application supprimee
+    delete_success_body: L'application a ete supprimee avec succes.
+    delete_error_title: Echec de suppression
+    delete_error_body: Impossible de supprimer l'application. Reessayez.
     delete_modal:
-      title: "Supprimer l'application"
-      body: "Cette action supprime definitivement l'application dans IBM Verify."
-      warning: "Cette action est definitive."
-      name_label: "Nom de l'application"
-      id_label: "ID de l'application"
-      client_id_label: "ID client"
-    open_in_verify: "Ouvrir dans Verify"
-    raw_payload_title: "Charge utile brute"
-    raw_payload_help: "Reponse complete d'IBM Verify."
+      title: Supprimer l'application
+      body: Cette action supprime definitivement l'application dans IBM Verify.
+      warning: Cette action est definitive.
+      name_label: Nom de l'application
+      id_label: ID de l'application
+      client_id_label: ID client
+    open_in_verify: Ouvrir dans Verify
+    raw_payload_title: Charge utile brute
+    raw_payload_help: Reponse complete d'IBM Verify.
     labels:
-      id: "ID"
-      name: "Nom"
-      company_name: "Nom de l'entreprise"
-      type: "Type"
-      state: "Etat"
-      client_id: "ID client"
-      description: "Description"
-      language: "Langue"
-      application_url: "URL de l'application"
-      client_secret: "Secret client"
-      client_type: "Type de client"
-      client_auth_method: "Methode d'authentification du client"
-      jwks_uri: "URI JWKS"
-      scopes: "Scopes demandes"
-      logout_method: "Methode de deconnexion"
-      logout_uri: "URI de deconnexion"
-      post_logout_redirect_uris: "URI de redirection apres deconnexion"
-      grant_type: "Type d'autorisation"
-      redirect_url: "URL de redirection"
-      pkce_enabled: "PKCE activee"
-      developers: "Developpeurs"
-      owners: "Proprietaires"
+      id: ID
+      name: Nom
+      company_name: Nom de l'entreprise
+      type: Type
+      state: Etat
+      client_id: ID client
+      description: Description
+      language: Langue
+      application_url: URL de l'application
+      client_secret: Secret client
+      client_type: Type de client
+      client_auth_method: Methode d'authentification du client
+      jwks_uri: URI JWKS
+      scopes: Scopes demandes
+      logout_method: Methode de deconnexion
+      logout_uri: URI de deconnexion
+      post_logout_redirect_uris: URI de redirection apres deconnexion
+      grant_type: Type d'autorisation
+      redirect_url: URL de redirection
+      pkce_enabled: PKCE activee
+      developers: Developpeurs
+      owners: Proprietaires
     client_secret_modal:
-      title: "Secret client"
-      subtitle: "Details du secret recuperes depuis IBM Verify."
-      client_id_label: "ID client"
-      secret_label: "Secret client"
-      copy_button: "Copier"
-      copy_success: "Secret client copie"
-      raw_payload_title: "Charge utile brute"
-      raw_payload_help: "Reponse complete d'IBM Verify."
-      rotated_title: "Secrets tournes"
-      rotated_help: "Secrets tournes precedents (le cas echeant)."
-      rotated_description: "Description"
-      rotated_value: "Valeur"
-      rotated_at: "Tourne le"
-      expired_at: "Expire le"
-      rotated_empty: "Aucun secret tourne disponible."
-      remove_rotated: "Supprimer les secrets tournes"
-      remove_missing_title: "Selection requise"
-      remove_missing_body: "Choisissez au moins un secret tourne a supprimer."
-      remove_failed_title: "Echec de suppression"
-      remove_failed_body: "Impossible de supprimer les secrets tournes. Reessayez."
-      remove_success_title: "Secrets tournes supprimes"
-      remove_success_body: "Les secrets tournes selectionnes ont ete supprimes."
-      close: "Fermer"
-      missing_title: "Secret client indisponible"
-      missing_body: "L'ID client est manquant pour cette application."
+      title: Secret client
+      subtitle: Details du secret recuperes depuis IBM Verify.
+      client_id_label: ID client
+      secret_label: Secret client
+      copy_button: Copier
+      copy_success: Secret client copie
+      raw_payload_title: Charge utile brute
+      raw_payload_help: Reponse complete d'IBM Verify.
+      rotated_title: Secrets tournes
+      rotated_help: Secrets tournes precedents (le cas echeant).
+      rotated_description: Description
+      rotated_value: Valeur
+      rotated_at: Tourne le
+      expired_at: Expire le
+      rotated_empty: Aucun secret tourne disponible.
+      remove_rotated: Supprimer les secrets tournes
+      remove_missing_title: Selection requise
+      remove_missing_body: Choisissez au moins un secret tourne a supprimer.
+      remove_failed_title: Echec de suppression
+      remove_failed_body: Impossible de supprimer les secrets tournes. Reessayez.
+      remove_success_title: Secrets tournes supprimes
+      remove_success_body: Les secrets tournes selectionnes ont ete supprimes.
+      close: Fermer
+      missing_title: Secret client indisponible
+      missing_body: L'ID client est manquant pour cette application.
     client_secret_edit_modal:
-      title: "Modifier le secret client"
-      subtitle: "Choisissez comment mettre a jour le secret client."
-      option_label: "Options de mise a jour"
-      regenerate_title: "Regenerer le secret"
-      regenerate_help: "Remplace le secret actuel immediatement."
-      rotate_title: "Tourner le secret"
-      rotate_help: "Garde le secret actuel actif jusqu a la date d expiration."
-      description_label: "Description"
-      description_placeholder: "Raison de la rotation"
-      expire_label: "Date d expiration"
-      expire_help: "Choisissez une date entre aujourd hui et 89 jours."
-      close: "Fermer"
-      missing_title: "Secret client indisponible"
-      missing_body: "L'ID client est manquant pour cette application."
-      invalid_action_title: "Requete invalide"
-      invalid_action_body: "Choisissez une option valide avant de soumettre."
-      missing_description_title: "Description requise"
-      missing_description_body: "Ajoutez une description pour le secret tourne."
-      missing_expiry_title: "Date d expiration requise"
-      missing_expiry_body: "Selectionnez une date d expiration dans 89 jours."
-      invalid_expiry_title: "Date d expiration invalide"
-      invalid_expiry_body: "La date doit etre apres maintenant et dans 89 jours."
-      submit_failed_title: "Echec de mise a jour"
-      submit_failed_body: "Impossible de mettre a jour le secret client. Reessayez."
-      submit_success_title: "Secret client mis a jour"
-      submit_success_regenerate: "Secret regenere."
-      submit_success_rotate: "Secret tourne."
+      title: Modifier le secret client
+      subtitle: Choisissez comment mettre a jour le secret client.
+      option_label: Options de mise a jour
+      regenerate_title: Regenerer le secret
+      regenerate_help: Remplace le secret actuel immediatement.
+      rotate_title: Tourner le secret
+      rotate_help: Garde le secret actuel actif jusqu a la date d expiration.
+      description_label: Description
+      description_placeholder: Raison de la rotation
+      expire_label: Date d expiration
+      expire_help: Choisissez une date entre aujourd hui et 89 jours.
+      close: Fermer
+      missing_title: Secret client indisponible
+      missing_body: L'ID client est manquant pour cette application.
+      invalid_action_title: Requete invalide
+      invalid_action_body: Choisissez une option valide avant de soumettre.
+      missing_description_title: Description requise
+      missing_description_body: Ajoutez une description pour le secret tourne.
+      missing_expiry_title: Date d expiration requise
+      missing_expiry_body: Selectionnez une date d expiration dans 89 jours.
+      invalid_expiry_title: Date d expiration invalide
+      invalid_expiry_body: La date doit etre apres maintenant et dans 89 jours.
+      submit_failed_title: Echec de mise a jour
+      submit_failed_body: Impossible de mettre a jour le secret client. Reessayez.
+      submit_success_title: Secret client mis a jour
+      submit_success_regenerate: Secret regenere.
+      submit_success_rotate: Secret tourne.
   table:
-    id: "ID"
-    name: "Nom"
-    type: "Type"
-    state: "Etat"
-    provisioning: "Approvisionnement"
-    actions: "Actions"
+    id: ID
+    name: Nom
+    type: Type
+    state: Etat
+    provisioning: Approvisionnement
+    actions: Actions
   actions:
-    view: "Voir"
-    usage: "Utilisation"
-    usage_tooltip: "Statistiques d'utilisation a venir."
-  state_label: "Etat :"
-  state_enabled: "Active"
-  state_disabled: "Desactive"
-  provisioning_state: "Approvisionnement :"
-  view_in_verify: "Ouvrir dans Verify"
-  empty_state: "Aucune application trouvee."
+    view: Voir
+    usage: Utilisation
+    usage_tooltip: Statistiques d'utilisation a venir.
+  state_label: 'Etat :'
+  state_enabled: Active
+  state_disabled: Desactive
+  provisioning_state: 'Approvisionnement :'
+  view_in_verify: Ouvrir dans Verify
+  empty_state: Aucune application trouvee.
 profile:
-  title: "Profil"
-  description: "Profil utilisateur actuel provenant d'IBM Verify"
-  subtitle: "Details de l'utilisateur actuel provenant d'IBM Verify."
-  session_details: "Details de session"
-  display_name: "Nom affiche"
-  verify_profile: "Profil Verify"
-  userinfo: "Infos utilisateur OIDC"
-  devices: "Appareils"
-  sessions: "Sessions"
-  applications: "Applications"
-  no_data: "Aucune donnee disponible"
-  actions_section: "Actions"
-  view_profile_api: "Voir le profil (API)"
-  back_to_dashboard: "Retour au tableau de bord"
+  title: Profil
+  description: Profil utilisateur actuel provenant d'IBM Verify
+  subtitle: Details de l'utilisateur actuel provenant d'IBM Verify.
+  session_details: Details de session
+  display_name: Nom affiche
+  verify_profile: Profil Verify
+  userinfo: Infos utilisateur OIDC
+  devices: Appareils
+  sessions: Sessions
+  applications: Applications
+  no_data: Aucune donnee disponible
+  actions_section: Actions
+  view_profile_api: Voir le profil (API)
+  back_to_dashboard: Retour au tableau de bord
 login:
-  title: "Se connecter"
-  description: "Se connecter a Connexion Canada Admin"
-  subtitle: "Authentifiez-vous avec votre compte d'entreprise pour continuer."
-  notice: "Vous serez redirige vers le fournisseur d'identite."
-  cta: "Continuer vers la connexion"
+  title: Se connecter
+  description: Se connecter a Connexion Canada Admin
+  subtitle: Authentifiez-vous avec votre compte d'entreprise pour continuer.
+  notice: Vous serez redirige vers le fournisseur d'identite.
+  cta: Continuer vers la connexion
 requests:
-  title: "Demandes"
-  subtitle: "Fragment charge par HTMX (pas de rendu SSR)."
-  placeholder: "Remplacez ceci par votre liste dynamique de demandes."
-  open_modal: "Ouvrir la fenetre modale"
-  show_toast: "Afficher la notification"
+  title: Demandes
+  subtitle: Fragment charge par HTMX (pas de rendu SSR).
+  placeholder: Remplacez ceci par votre liste dynamique de demandes.
+  open_modal: Ouvrir la fenetre modale
+  show_toast: Afficher la notification
 modal:
-  title: "Formulaire modale de demonstration"
-  name_label: "Nom"
-  message_label: "Message"
-  name_placeholder: "Entrez votre nom"
-  message_placeholder: "Note facultative"
-  cancel: "Annuler"
-  submit: "Soumettre"
+  title: Formulaire modale de demonstration
+  name_label: Nom
+  message_label: Message
+  name_placeholder: Entrez votre nom
+  message_placeholder: Note facultative
+  cancel: Annuler
+  submit: Soumettre
 toast:
-  signed_in_title: "Connecte"
-  welcome_back: "Bon retour, {name}!"
-  submitted_title: "Soumis"
-  thanks: "Merci {name}!"
-  note_received: "Note recue: {message}"
-  welcome_back_demo: "Bon retour! Ceci est une notification de demonstration."
+  signed_in_title: Connecte
+  welcome_back: Bon retour, {name}!
+  submitted_title: Soumis
+  thanks: Merci {name}!
+  note_received: 'Note recue: {message}'
+  welcome_back_demo: Bon retour! Ceci est une notification de demonstration.
 common:
-  na: "s/o"
-  view: "Voir"
-  edit: "Modifier"
-  delete: "Supprimer"
-  cancel: "Annuler"
-  save: "Enregistrer"
-  add: "Ajouter"
-  remove: "Supprimer"
-  loading: "Chargement..."
-  error: "Erreur"
+  na: s/o
+  view: Voir
+  edit: Modifier
+  delete: Supprimer
+  cancel: Annuler
+  save: Enregistrer
+  add: Ajouter
+  remove: Supprimer
+  loading: Chargement...
+  error: Erreur
 group_management:
-  title: "Gestion du groupe Propriétaires d'applications"
-  description: "Gérez les membres du groupe propriétaires d'applications dans IBM Verify"
-  section_add_members: "Ajouter des membres"
-  section_current_members: "Membres actuels"
-  search_label: "Rechercher les utilisateurs par courriel"
-  search_placeholder: "Entrez le courriel de l'utilisateur pour effectuer une recherche..."
-  search_loading: "Chargement..."
-  search_no_results: "Aucun utilisateur trouvé correspondant à votre recherche"
-  search_error: "Erreur : {error}"
-  search_modal_title: "Rechercher des utilisateurs"
-  button_search: "Rechercher"
-  button_add: "Ajouter"
-  button_remove: "Supprimer"
-  button_cancel: "Annuler"
-  modal_title: "Supprimer le membre du groupe"
-  search_all_added: "Tous les utilisateurs correspondants sont déjà membres du groupe. Essayez une autre recherche."
-  modal_body: "Êtes-vous sûr que vous voulez supprimer cet utilisateur du groupe propriétaires d'applications ?"
-  modal_warning: "Cette action ne peut pas être annulée."
-  modal_member_email: "Courriel"
-  modal_member_id: "ID utilisateur"
-  toast_add_success_title: "Membre ajouté"
-  toast_add_success_body: "Utilisateur ajouté au groupe propriétaires d'applications"
-  toast_add_error_title: "Échec de l'ajout du membre"
-  toast_add_error_body: "Impossible d'ajouter l'utilisateur au groupe. Réessayez."
-  toast_remove_success_title: "Membre supprimé"
-  toast_remove_success_body: "Utilisateur supprimé du groupe propriétaires d'applications"
-  toast_remove_error_title: "Échec de la suppression du membre"
-  toast_remove_error_body: "Impossible de supprimer l'utilisateur du groupe. Réessayez."
-  error_group_not_found: "Groupe non trouvé"
-  error_invalid_user_id: "ID utilisateur invalide"
+  title: Gestion du groupe Propriétaires d'applications
+  description: Gérez les membres du groupe propriétaires d'applications dans IBM Verify
+  section_add_members: Ajouter des membres
+  section_current_members: Membres actuels
+  search_label: Rechercher les utilisateurs par courriel
+  search_placeholder: Entrez le courriel de l'utilisateur pour effectuer une recherche...
+  search_loading: Chargement...
+  search_no_results: Aucun utilisateur trouvé correspondant à votre recherche
+  search_error: 'Erreur : {error}'
+  search_modal_title: Rechercher des utilisateurs
+  button_search: Rechercher
+  button_add: Ajouter
+  button_remove: Supprimer
+  button_cancel: Annuler
+  modal_title: Supprimer le membre du groupe
+  search_all_added: Tous les utilisateurs correspondants sont déjà membres du groupe.
+    Essayez une autre recherche.
+  modal_body: Êtes-vous sûr que vous voulez supprimer cet utilisateur du groupe propriétaires
+    d'applications ?
+  modal_warning: Cette action ne peut pas être annulée.
+  modal_member_email: Courriel
+  modal_member_id: ID utilisateur
+  toast_add_success_title: Membre ajouté
+  toast_add_success_body: Utilisateur ajouté au groupe propriétaires d'applications
+  toast_add_error_title: Échec de l'ajout du membre
+  toast_add_error_body: Impossible d'ajouter l'utilisateur au groupe. Réessayez.
+  toast_remove_success_title: Membre supprimé
+  toast_remove_success_body: Utilisateur supprimé du groupe propriétaires d'applications
+  toast_remove_error_title: Échec de la suppression du membre
+  toast_remove_error_body: Impossible de supprimer l'utilisateur du groupe. Réessayez.
+  error_group_not_found: Groupe non trouvé
+  error_invalid_user_id: ID utilisateur invalide

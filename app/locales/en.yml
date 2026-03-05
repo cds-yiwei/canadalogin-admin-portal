@@ -135,6 +135,8 @@ applications:
       ip_unknown_tag: "IP?"
       unknown_country: "Unknown country"
       empty: "No audit trail entries found."
+    load_more: "Load more"
+    loading: "Loading..."
   detail:
     title: "Application details"
     description: "Details for the selected application."

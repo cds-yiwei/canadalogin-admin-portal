@@ -23,7 +23,7 @@
 
 <div id="audit-trail-load-more-wrapper">
   {% if next and has_next %}
-    <button id="audit-trail-load-more" class="gcds-button" hx-get="/applications/{{ app_id }}/usage?SEARCH_AFTER={{ next|urlencode }}&PAGE={{ current_page + 1 }}&append=1" hx-target="#audit-trail-rows" hx-swap="beforeend" hx-trigger="click">Load more</button>
+    <button id="audit-trail-load-more" class="gcds-button" hx-get="/applications/{{ app_id }}/usage?SEARCH_AFTER={{ next|urlencode }}&append=1" hx-target="#audit-trail-rows" hx-swap="beforeend" hx-trigger="click">Load more</button>
   {% else %}
     <div id="audit-trail-load-more" aria-hidden="true"></div>
   {% endif %}

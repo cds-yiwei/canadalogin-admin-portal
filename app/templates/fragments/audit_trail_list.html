@@ -1,0 +1,48 @@
+<div id="audit-trail-list">
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>{{ 'User' }}</th>
+          <th>{{ 'IP' }}</th>
+          <th>{{ 'Result' }}</th>
+          <th>{{ 'Country' }}</th>
+          <th>{{ 'Time' }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if audit_trail_rows %}
+          {% for entry in audit_trail_rows %}
+            <tr>
+              <td>{{ entry.username_display }}</td>
+              <td>{{ entry.origin_display }}</td>
+              <td>{{ entry.result }}</td>
+              <td>{{ entry.country }}</td>
+              <td>{% if entry.time_seconds %}<span class="js-local-datetime" data-epoch-seconds="{{ entry.time_seconds }}">{{ entry.time_seconds }}</span>{% else %}N/A{% endif %}</td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="5">No audit events</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+  <div class="pagination-actions gcds-mt-100">
+    <div class="d-flex justify-content-between">
+      <div>
+        {% if prev %}
+          <button class="gcds-button" hx-post="" hx-headers='{"SEARCH_AFTER":"{{ prev }}", "SEARCH_DIR":"before"}' hx-target="#audit-trail-list" hx-swap="outerHTML">Prev</button>
+        {% else %}
+          <button class="gcds-button" disabled>Prev</button>
+        {% endif %}
+      </div>
+      <div>
+        {% if next %}
+          <button class="gcds-button" hx-post="" hx-headers='{"SEARCH_AFTER":"{{ next }}"}' hx-target="#audit-trail-list" hx-swap="outerHTML">Next</button>
+        {% else %}
+          <button class="gcds-button" disabled>Next</button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>

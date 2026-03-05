@@ -311,14 +311,34 @@ async def application_usage_page(
             "failed": report.failed_logins.doc_count,
             "unique_users": report.unique_users.value,
         }
-    audit_trail = await service.get_application_audit_trail(
-        application_id, from_date, to_date, size, sort_by, sort_order
-    )
+    # Read SEARCH_AFTER and SEARCH_DIR from headers (prefer headers)
+    search_after = request.headers.get("SEARCH_AFTER")
+    search_dir = request.headers.get("SEARCH_DIR")
+
+    # If HX-Request and SEARCH_AFTER present, delegate to search_after API
+    if search_after is not None or search_dir is not None:
+        # Use the new service method that supports search_after semantics
+        audit_trail_result = await service.get_application_audit_trail_search_after(
+            application_id, from_date, to_date, size=size if size else 25, search_after=search_after, search_dir=search_dir
+        )
+    else:
+        audit_trail_result = await service.get_application_audit_trail(
+            application_id, from_date, to_date, size, sort_by, sort_order
+        )
 
     # parse audit trail rows using helper in utils
     from app.controller.web._utils import _parse_audit_trail as parse_audit_trail
 
-    audit_trail_rows = parse_audit_trail(audit_trail)
+    # audit_trail_result may be raw dict from service; normalize
+    if isinstance(audit_trail_result, tuple) or isinstance(audit_trail_result, list):
+        # expected (events, tokens)
+        events = audit_trail_result[0]
+        tokens = audit_trail_result[1] if len(audit_trail_result) > 1 else {}
+    else:
+        events = audit_trail_result.get("events", [])
+        tokens = {"next": audit_trail_result.get("next"), "prev": audit_trail_result.get("prev")}
+
+    audit_trail_rows = parse_audit_trail(events)
 
     locale = get_request_locale(request)
     breadcrumb_label = app_name or application_id

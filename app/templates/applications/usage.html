@@ -80,7 +80,7 @@
   </div>
   <div id="audit-trail-load-more-wrapper" class="gcds-mt-100">
     {% if next and has_next %}
-      <button id="audit-trail-load-more" class="gcds-button" data-next="{{ next }}">Load more</button>
+      <gcds-button id="audit-trail-load-more" type="button" variant="secondary" data-next="{{ next }}">{{ t('applications.usage.load_more') }}</gcds-button>
       <div id="audit-trail-announce" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
     {% else %}
       <div id="audit-trail-load-more" aria-hidden="true"></div>

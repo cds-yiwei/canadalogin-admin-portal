@@ -270,7 +270,7 @@ async def application_usage_page(
     application_id: str,
     from_date: str | None = None,
     to_date: str | None = None,
-    size: int = 50,
+    size: int = 5,
     sort_by: str = "time",
     sort_order: str = "DESC",
     user: dict = Depends(require_web_user),

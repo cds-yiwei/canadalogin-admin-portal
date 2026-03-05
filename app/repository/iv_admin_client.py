@@ -222,7 +222,7 @@ class IBMVerifyAdminClient:
                     next_token = f'{last_ts}, "{last_id}"'
         except Exception:
             pass
-        normalized = {"events": events, "next": next_token, "prev": prev_token, "total": total}
+        normalized = {"events": events, "next": next_token, "total": total}
         logger.debug(f"app_audit_trail_search_after: normalized={normalized}")
         return normalized
 
@@ -335,7 +335,7 @@ class IBMVerifyAdminClient:
                     next_token = f'{last_ts}, "{last_id}"'
         except Exception:
             pass
-        normalized = {"events": events, "next": next_token, "prev": prev_token, "total": total}
+        normalized = {"events": events, "next": next_token, "total": total}
         logger.debug(f"app_audit_trail_search_after: normalized={normalized}")
         return normalized
 

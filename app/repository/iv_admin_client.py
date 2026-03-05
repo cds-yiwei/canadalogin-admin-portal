@@ -189,10 +189,16 @@ class IBMVerifyAdminClient:
             payload["SEARCH_AFTER"] = search_after
         if search_dir:
             payload["SEARCH_DIR"] = search_dir
+        # Log outgoing payload and (later) response for debugging
+        logger.debug("app_audit_trail_search_after: payload=%s", payload)
         response = await self._client.post(
             f"{self._base_url}/v1.0/reports/app_audit_trail_search_after",
             json=payload,
         )
+        try:
+            logger.debug("app_audit_trail_search_after: response_status=%s response_text=%s", response.status_code, response.text)
+        except Exception:
+            logger.debug("app_audit_trail_search_after: response received (non-text)")
         self._handle_response(response)
         return response.json()
 

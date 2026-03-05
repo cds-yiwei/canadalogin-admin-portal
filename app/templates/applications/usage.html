@@ -199,8 +199,18 @@
           btn.textContent = L_LOAD_MORE;
         }
       } else {
+        // No more pages: keep the button visible but disabled with regular label
         btn.removeAttribute('data-next');
-        btn.hidden = true;
+        btn.disabled = true;
+        btn.removeAttribute('aria-busy');
+        const L_LOAD_MORE = '{{ t('applications.usage.load_more') }}';
+        if(btn.tagName.toLowerCase()==='gcds-button'){
+          const inner = btn.querySelector('button');
+          if(inner) inner.textContent = L_LOAD_MORE;
+          else btn.textContent = L_LOAD_MORE;
+        } else {
+          btn.textContent = L_LOAD_MORE;
+        }
       }
       // trigger any client-side datetime formatting if present
       if(window.applyLocalDates && typeof window.applyLocalDates === 'function'){

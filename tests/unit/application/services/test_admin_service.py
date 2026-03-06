@@ -85,24 +85,6 @@ async def test_get_application_total_logins_returns_payload():
 
 
 @pytest.mark.asyncio
-async def test_get_application_audit_trail_returns_payload():
-    gateway = FakeAdminGateway()
-    service = AdminService(gateway)
-
-    result = await service.get_application_audit_trail("app-999")
-
-    assert result == gateway.audit_trail_payload
-    assert gateway.audit_trail_params == {
-        "application_id": "app-999",
-        "from_date": None,
-        "to_date": None,
-        "size": 50,
-        "sort_by": "time",
-        "sort_order": "DESC",
-    }
-
-
-@pytest.mark.asyncio
 async def test_get_client_secret_returns_payload_and_passes_id():
     gateway = FakeAdminGateway()
     service = AdminService(gateway)

@@ -158,69 +158,9 @@ class IBMVerifyAdminClient:
         )
 
         self._handle_response(response)
-        payload = response.json()
-        return self._normalize_audit_report(payload)
+        return response.json()
 
-    def _normalize_audit_report(self, payload: Dict[str, Any]) -> Dict[str, Any]:
-        """Normalize audit report payload into standardized dict.
-
-        Returns: {"events": [...], "next": <token>|None, "total": <int>|None}
-        """
-        events: List[Dict[str, Any]] = []
-        next_token = None
-        total = None
-        try:
-            report = payload.get("response", {}).get("report", {})
-            hits = report.get("hits", []) if isinstance(report, dict) else []
-            # robustly extract total (int, dict.value, or numeric string)
-            raw_total = None
-            if isinstance(report, dict):
-                raw_total = report.get("total")
-            if raw_total is None:
-                raw_total = payload.get("response", {}).get("report", {}).get("total")
-            if isinstance(raw_total, dict):
-                total = raw_total.get("value")
-            elif isinstance(raw_total, int):
-                total = raw_total
-            elif isinstance(raw_total, str):
-                try:
-                    total = int(raw_total)
-                except Exception:
-                    total = None
-            for hit in hits:
-                _id = hit.get("_id")
-                sort = hit.get("sort") or []
-                if sort and isinstance(sort, list) and len(sort) >= 1:
-                    timestamp = sort[0]
-                else:
-                    timestamp = hit.get("_source", {}).get("time")
-                src = hit.get("_source", {})
-                data = src.get("data", {}) if isinstance(src, dict) else {}
-                geo = src.get("geoip", {}) if isinstance(src, dict) else {}
-                events.append(
-                    {
-                        "id": _id,
-                        "timestamp": timestamp,
-                        "username": data.get("username") or data.get("userid"),
-                        "origin": data.get("origin"),
-                        "result": data.get("result"),
-                        "country": geo.get("country_name") or geo.get("country_iso_code"),
-                    }
-                )
-            if hits:
-                last = hits[-1]
-                last_sort = last.get("sort") or []
-                if last_sort and len(last_sort) >= 2:
-                    last_ts = last_sort[0]
-                    last_id = last_sort[1]
-                else:
-                    last_ts = last.get("_source", {}).get("time")
-                    last_id = last.get("_id")
-                if last_ts and last_id:
-                    next_token = f'{last_ts}, "{last_id}"'
-        except Exception:
-            pass
-        return {"events": events, "next": next_token, "total": total}
+    # Normalization moved to service layer (AdminService)
 
     async def app_audit_trail_search_after(
         self,
@@ -260,24 +200,8 @@ class IBMVerifyAdminClient:
             json=payload,
         )
 
-        # If upstream reports this report config doesn't exist, fallback gracefully
-        if response.status_code == 400:
-            try:
-                body = response.json()
-                msg = str(body.get("messageDescription") or body.get("messageId") or body)
-            except Exception:
-                msg = getattr(response, "text", "")
-            if "app_audit_trail_search_after" in msg:
-                logger.warning(
-                    "app_audit_trail_search_after not supported by tenant, falling back to initial report endpoint"
-                )
-                # Fall back: call initial report endpoint and return normalized result
-                return await self.get_application_audit_trail(
-                    application_id, from_date, to_date, size, "time", "DESC"
-                )
         self._handle_response(response)
-        payload = response.json()
-        return self._normalize_audit_report(payload)
+        return response.json()
 
     async def get_client_secret(self, client_id: str) -> Dict[str, Any]:
 

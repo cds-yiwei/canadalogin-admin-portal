@@ -9,6 +9,74 @@ class AdminService:
     def __init__(self, client: IBMVerifyAdminClient):
         self._client = client
 
+    def _normalize_audit_report(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """Normalize audit report payload into standardized dict.
+
+        Returns: {"events": [...], "next": <token>|None, "total": <int>|None}
+        """
+        # If upstream already returned a normalized payload, return as-is
+        if isinstance(payload, dict) and isinstance(payload.get("events"), list):
+            return {
+                "events": payload.get("events", []),
+                "next": payload.get("next"),
+                "total": payload.get("total"),
+            }
+        events: List[Dict[str, Any]] = []
+        next_token = None
+        total = None
+        try:
+            report = payload.get("response", {}).get("report", {})
+            hits = report.get("hits", []) if isinstance(report, dict) else []
+            # robustly extract total (int, dict.value, or numeric string)
+            raw_total = None
+            if isinstance(report, dict):
+                raw_total = report.get("total")
+            if raw_total is None:
+                raw_total = payload.get("response", {}).get("report", {}).get("total")
+            if isinstance(raw_total, dict):
+                total = raw_total.get("value")
+            elif isinstance(raw_total, int):
+                total = raw_total
+            elif isinstance(raw_total, str):
+                try:
+                    total = int(raw_total)
+                except Exception:
+                    total = None
+            for hit in hits:
+                _id = hit.get("_id")
+                sort = hit.get("sort") or []
+                if sort and isinstance(sort, list) and len(sort) >= 1:
+                    timestamp = sort[0]
+                else:
+                    timestamp = hit.get("_source", {}).get("time")
+                src = hit.get("_source", {})
+                data = src.get("data", {}) if isinstance(src, dict) else {}
+                geo = src.get("geoip", {}) if isinstance(src, dict) else {}
+                events.append(
+                    {
+                        "id": _id,
+                        "timestamp": timestamp,
+                        "username": data.get("username") or data.get("userid"),
+                        "origin": data.get("origin"),
+                        "result": data.get("result"),
+                        "country": geo.get("country_name") or geo.get("country_iso_code"),
+                    }
+                )
+            if hits:
+                last = hits[-1]
+                last_sort = last.get("sort") or []
+                if last_sort and len(last_sort) >= 2:
+                    last_ts = last_sort[0]
+                    last_id = last_sort[1]
+                else:
+                    last_ts = last.get("_source", {}).get("time")
+                    last_id = last.get("_id")
+                if last_ts and last_id:
+                    next_token = f'{last_ts}, "{last_id}"'
+        except Exception:
+            pass
+        return {"events": events, "next": next_token, "total": total}
+
     async def list_users(self) -> List[User]:
         data = await self._client.fetch_users()
         return [
@@ -60,7 +128,8 @@ class AdminService:
         sort_by: str = "time",
         sort_order: str = "DESC",
     ) -> Dict[str, Any]:
-        return await self._client.get_application_audit_trail(
+
+        payload = await self._client.get_application_audit_trail(
             application_id,
             from_date,
             to_date,
@@ -68,6 +137,7 @@ class AdminService:
             sort_by,
             sort_order,
         )
+        return self._normalize_audit_report(payload)
 
     async def get_application_audit_trail_search_after(
         self,
@@ -81,13 +151,14 @@ class AdminService:
 
         Returns: dict {"events": [...], "next": str|None, "total": int|None}
         """
-        return await self._client.app_audit_trail_search_after(
+        payload = await self._client.app_audit_trail_search_after(
             application_id,
             from_date,
             to_date,
             size=size,
             search_after=search_after,
         )
+        return self._normalize_audit_report(payload)
 
     async def get_client_secret(self, client_id: str) -> Dict[str, Any]:
         return await self._client.get_client_secret(client_id)

@@ -258,10 +258,7 @@ class IBMVerifyAdminClient:
             f"{self._base_url}/v1.0/reports/app_audit_trail_search_after",
             json=payload,
         )
-        try:
-            _ = response.status_code
-        except Exception:
-            pass
+
         # If upstream reports this report config doesn't exist, fallback gracefully
         if response.status_code == 400:
             try:

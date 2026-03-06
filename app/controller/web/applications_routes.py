@@ -14,6 +14,7 @@ from app.controller.web._utils import (
     _parse_application_list,
     _extract_application_id,
     _build_application_creation_payload,
+    _parse_audit_trail as parse_audit_trail,
 )
 from app.controller.schemas import (
     ApplicationDetailData,
@@ -311,67 +312,29 @@ async def application_usage_page(
             "failed": report.failed_logins.doc_count,
             "unique_users": report.unique_users.value,
         }
-    # Read SEARCH_AFTER and SEARCH_DIR from query params first (used by HTMX GET),
-    # then prefer request payload (form/json), then headers as fallback
-    search_after = request.query_params.get("SEARCH_AFTER")
-    search_dir = request.query_params.get("SEARCH_DIR")
+
     # Remove PAGE usage — pagination is SEARCH_AFTER-driven and stateless
     current_page = None
 
-    try:
-        if not search_after and request.headers.get("content-type", "").startswith("application/json"):
-            body = await request.json()
-            search_after = body.get("SEARCH_AFTER")
-            search_dir = body.get("SEARCH_DIR")
-        elif not search_after:
-            form = await request.form()
-            search_after = form.get("SEARCH_AFTER")
-            search_dir = form.get("SEARCH_DIR")
-    except Exception:
-        # ignore parse errors and fallback to headers
-        pass
+    audit_trail_result = await service.get_application_audit_trail(
+        application_id, from_date, to_date, size, sort_by, sort_order
+    )
 
-    if not search_after:
-        search_after = request.headers.get("SEARCH_AFTER")
-    if not search_dir:
-        search_dir = request.headers.get("SEARCH_DIR")
-
-    # If SEARCH_AFTER present, delegate to search_after API
-    if search_after is not None or search_dir is not None:
-        # Use the new service method that supports search_after semantics
-        audit_trail_result = await service.get_application_audit_trail_search_after(
-            application_id, from_date, to_date, size=size if size else 25, search_after=search_after, search_dir=search_dir
-        )
-    else:
-        audit_trail_result = await service.get_application_audit_trail(
-            application_id, from_date, to_date, size, sort_by, sort_order
-        )
-
-    # parse audit trail rows using helper in utils
-    from app.controller.web._utils import _parse_audit_trail as parse_audit_trail
-
-    # audit_trail_result may be raw dict from service; normalize and prepare payload for parse
-    if isinstance(audit_trail_result, tuple) or isinstance(audit_trail_result, list):
-        # expected (events, tokens)
-        events = audit_trail_result[0]
-        tokens = audit_trail_result[1] if len(audit_trail_result) > 1 else {}
-        payload_for_parse = {"events": events}
-    else:
-        events = audit_trail_result.get("events", [])
-        tokens = {"next": audit_trail_result.get("next"), "prev": audit_trail_result.get("prev")}
-        payload_for_parse = audit_trail_result
+    events = audit_trail_result.get("events", [])
+    tokens = {"next": audit_trail_result.get("next")}
+    payload_for_parse = audit_trail_result
 
     # Parse audit trail rows from the normalized payload
     # Ensure we always pass a dict with 'events' key to _parse_audit_trail
-    if isinstance(payload_for_parse, dict) and 'events' in payload_for_parse:
+    if isinstance(payload_for_parse, dict) and "events" in payload_for_parse:
         audit_trail_rows = parse_audit_trail(payload_for_parse)
     else:
-        audit_trail_rows = parse_audit_trail({'events': payload_for_parse if payload_for_parse is not None else []})
-
+        audit_trail_rows = parse_audit_trail(
+            {"events": payload_for_parse if payload_for_parse is not None else []}
+        )
 
     locale = get_request_locale(request)
     breadcrumb_label = app_name or application_id
-
 
     # Determine has_next based on total and current_page * size
     total_count = None
@@ -386,42 +349,6 @@ async def application_usage_page(
             has_next = len(events or []) >= int(size)
     except Exception:
         has_next = len(events or []) >= int(size)
-
-    # Synthesize prev token if upstream didn't provide one and events available
-    prev_token = tokens.get("prev") if isinstance(tokens, dict) else None
-    if not prev_token and events:
-        try:
-            first = events[0]
-            if isinstance(first, dict) and first.get("timestamp") and first.get("id"):
-                prev_token = f'{first.get("timestamp")}, "{first.get("id")}"'
-        except Exception:
-            prev_token = None
-    # Use synthesized or upstream prev_token
-    tokens["prev"] = prev_token
-
-    # If this is an append request expecting JSON (append=1), return JSON payload for client-side rendering
-    if request.query_params.get("append") == "1" or request.headers.get("accept", "").startswith("application/json"):
-        from fastapi.responses import JSONResponse
-        try:
-            # For append JSON responses, use _parse_audit_trail to apply server-side marking (username_known, username_display, origin_display, time_seconds)
-            parsed_rows = parse_audit_trail({'events': events or []})
-            # add backward-compatible timestamp fields (ms) so client JS can use ev.timestamp
-            for r in parsed_rows:
-                try:
-                    secs = r.get('time_seconds')
-                    if secs:
-                        r['timestamp_ms'] = int(secs) * 1000
-                        r['timestamp'] = r['timestamp_ms']
-                    else:
-                        r['timestamp_ms'] = None
-                        r['timestamp'] = None
-                except Exception:
-                    r['timestamp_ms'] = None
-                    r['timestamp'] = None
-            return JSONResponse({"events": parsed_rows, "next": tokens.get("next"), "total": total_count, "has_next": has_next})
-        except Exception:
-            return JSONResponse({"events": [], "next": None, "prev": None, "total": None, "has_next": False})
-
     # Ensure events is a list for template
     if not isinstance(events, list):
         events = []
@@ -439,7 +366,6 @@ async def application_usage_page(
             "audit_trail": events,
             "audit_trail_rows": audit_trail_rows,
             "next": tokens.get("next"),
-            "prev": tokens.get("prev"),
             "has_next": has_next,
             "title": translate(locale, "applications.usage.title"),
             "description": translate(locale, "applications.usage.description"),

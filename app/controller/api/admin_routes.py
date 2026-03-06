@@ -15,6 +15,7 @@ from app.controller._utils import (
     _build_application_creation_payload,
     _extract_application_id,
 )
+from app.controller._utils import _parse_audit_trail as parse_audit_trail
 from app.core.roles import Role
 from app.dependencies.auth import require_api_access, require_web_user
 from app.dependencies.services import get_admin_service
@@ -154,6 +155,71 @@ async def get_application_audit_trail(
         application_id, from_date, to_date, size, sort_by, sort_order
     )
     return ApplicationAuditTrailResponse.model_validate(data)
+
+
+@router.get("/applications/{application_id}/usage")
+async def get_application_usage_api(
+    request: Request,
+    application_id: str,
+    from_date: str | None = None,
+    to_date: str | None = None,
+    size: int = 25,
+    sort_by: str = "time",
+    sort_order: str = "DESC",
+    _user: dict = Depends(require_web_user),
+    service: AdminService = Depends(get_admin_service),
+):
+    """API endpoint used by the web UI to fetch paginated audit-trail rows as JSON.
+
+    Returns a simplified payload: { events: [...], next, total, has_next }
+    """
+    # prefer SEARCH_AFTER cursor if present
+    search_after = request.query_params.get("SEARCH_AFTER")
+    if search_after is not None:
+        audit_trail_result = await service.get_application_audit_trail_search_after(
+            application_id,
+            from_date,
+            to_date,
+            size=size if size else 25,
+            search_after=search_after,
+        )
+    else:
+        audit_trail_result = await service.get_application_audit_trail(
+            application_id, from_date, to_date, size, sort_by, sort_order
+        )
+
+    events = audit_trail_result.get("events", []) if isinstance(audit_trail_result, dict) else []
+    tokens = {
+        "next": audit_trail_result.get("next") if isinstance(audit_trail_result, dict) else None
+    }
+    total_count = audit_trail_result.get("total") if isinstance(audit_trail_result, dict) else None
+
+    try:
+        parsed_rows = parse_audit_trail({"events": events or []})
+        for r in parsed_rows:
+            try:
+                secs = r.get("time_seconds")
+                if secs:
+                    r["timestamp_ms"] = int(secs) * 1000
+                    r["timestamp"] = r["timestamp_ms"]
+                else:
+                    r["timestamp_ms"] = None
+                    r["timestamp"] = None
+            except Exception:
+                r["timestamp_ms"] = None
+                r["timestamp"] = None
+
+        has_next = len(events or []) >= int(size)
+        return JSONResponse(
+            {
+                "events": parsed_rows,
+                "next": tokens.get("next"),
+                "total": total_count,
+                "has_next": has_next,
+            }
+        )
+    except Exception:
+        return JSONResponse({"events": [], "next": None, "total": None, "has_next": False})
 
 
 @router.get("/applications/{application_id}", response_model=ApplicationDetailData)

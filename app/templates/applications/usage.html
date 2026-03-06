@@ -147,7 +147,7 @@
       } else {
         btn.textContent = L_LOADING;
       }
-      const resp = await fetch(`/applications/{{ app_id }}/usage?SEARCH_AFTER=${encodeURIComponent(next)}&append=1`, {
+      const resp = await fetch(`/api/v1/applications/{{ app_id }}/usage?SEARCH_AFTER=${encodeURIComponent(next)}&append=1`, {
         headers: { 'Accept': 'application/json' }
       });
       if(!resp.ok) throw new Error('Network error');

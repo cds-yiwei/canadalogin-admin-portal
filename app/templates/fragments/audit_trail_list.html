@@ -42,8 +42,8 @@
   </div>
   <div id="audit-trail-load-more-wrapper" class="gcds-mt-100">
     {% if next and has_next %}
-      <!-- Visible Load more button on initial page -->
-      <button id="audit-trail-load-more" class="gcds-button" hx-get="/applications/{{ app_id }}/usage?SEARCH_AFTER={{ next|urlencode }}&append=1" hx-target="#audit-trail-rows" hx-swap="beforeend" hx-trigger="click">Load more</button>
+    <!-- Visible Load more button on initial page -->
+    <button id="audit-trail-load-more" class="gcds-button" hx-get="/api/v1/applications/{{ app_id }}/usage?SEARCH_AFTER={{ next|urlencode }}&append=1" hx-target="#audit-trail-rows" hx-swap="beforeend" hx-trigger="click">Load more</button>
     {% else %}
       <div id="audit-trail-load-more" aria-hidden="true"></div>
     {% endif %}

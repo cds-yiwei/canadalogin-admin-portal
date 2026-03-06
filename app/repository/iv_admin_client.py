@@ -133,7 +133,7 @@ class IBMVerifyAdminClient:
         application_id: str,
         from_date: Optional[str] = None,
         to_date: Optional[str] = None,
-        size: int = 50,
+        size: int = 25,
         sort_by: str = "time",
         sort_order: str = "DESC",
     ) -> Dict[str, Any]:
@@ -156,126 +156,18 @@ class IBMVerifyAdminClient:
             f"{self._base_url}/v1.0/reports/app_audit_trail",
             json=payload,
         )
-        try:
-            _ = response.status_code
-        except Exception:
-            pass
+
         self._handle_response(response)
         payload = response.json()
-        # Normalize payload (support upstream response.report.hits)
-        events = []
-        next_token = None
-        prev_token = None
-        total = None
-        try:
-            report = payload.get("response", {}).get("report", {})
-            hits = report.get("hits", []) if isinstance(report, dict) else []
-            # Extract total if present (could be int or dict with value)
-            raw_total = report.get("total") if isinstance(report, dict) else None
-            if isinstance(raw_total, dict):
-                total = raw_total.get("value")
-            elif isinstance(raw_total, int):
-                total = raw_total
-            for hit in hits:
-                _id = hit.get("_id")
-                sort = hit.get("sort") or []
-                if sort and isinstance(sort, list) and len(sort) >= 1:
-                    timestamp = sort[0]
-                else:
-                    timestamp = hit.get("_source", {}).get("time")
-                src = hit.get("_source", {})
-                data = src.get("data", {}) if isinstance(src, dict) else {}
-                geo = src.get("geoip", {}) if isinstance(src, dict) else {}
-                events.append(
-                    {
-                        "id": _id,
-                        "timestamp": timestamp,
-                        "username": data.get("username") or data.get("userid"),
-                        "origin": data.get("origin"),
-                        "result": data.get("result"),
-                        "country": geo.get("country_name") or geo.get("country_iso_code"),
-                    }
-                )
-            if hits:
-                first = hits[0]
-                first_sort = first.get("sort") or []
-                # For prev token, use first item's sort
-                if first_sort and len(first_sort) >= 2:
-                    first_ts = first_sort[0]
-                    first_id = first_sort[1]
-                else:
-                    first_ts = first.get("_source", {}).get("time")
-                    first_id = first.get("_id")
-                if first_ts and first_id:
-                    prev_token = f'{first_ts}, "{first_id}"'
-                last = hits[-1]
-                last_sort = last.get("sort") or []
-                if last_sort and len(last_sort) >= 2:
-                    last_ts = last_sort[0]
-                    last_id = last_sort[1]
-                else:
-                    last_ts = last.get("_source", {}).get("time")
-                    last_id = last.get("_id")
-                if last_ts and last_id:
-                    next_token = f'{last_ts}, "{last_id}"'
-        except Exception:
-            pass
-        normalized = {"events": events, "next": next_token, "total": total}
-        return normalized
+        return self._normalize_audit_report(payload)
 
-    async def app_audit_trail_search_after(self, application_id: str, from_date: Optional[str] = None, to_date: Optional[str] = None, size: int = 25, search_after: Optional[str] = None, search_dir: Optional[str] = None) -> Dict[str, Any]:
-        """Call the app_audit_trail_search_after endpoint and return parsed JSON.
+    def _normalize_audit_report(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """Normalize audit report payload into standardized dict.
 
-        Args:
-            application_id: Application ID to query
-            from_date: From timestamp (ms)
-            to_date: To timestamp (ms)
-            size: Page size
-            search_after: Optional opaque cursor
-            search_dir: Optional direction ("before" or "after")
-        Returns:
-            Parsed JSON response as dict
+        Returns: {"events": [...], "next": <token>|None, "total": <int>|None}
         """
-        now = datetime.now()
-        past_7_days = now - timedelta(days=7)
-        to_timestamp = to_date or str(int(now.timestamp() * 1000))
-        from_timestamp = from_date or str(int(past_7_days.timestamp() * 1000))
-        payload = {
-            "APPID": application_id,
-            "FROM": from_timestamp,
-            "TO": to_timestamp,
-            "SIZE": size if size > 0 else 25,
-            "SORT_BY": "time",
-            "SORT_ORDER": "DESC",
-        }
-        # Include SEARCH_AFTER/SEARCH_DIR in payload (preferred) for upstream
-        if search_after:
-            payload["SEARCH_AFTER"] = search_after
-        if search_dir:
-            payload["SEARCH_DIR"] = search_dir
-        # Log outgoing payload and (later) response for debugging
-        response = await self._client.post(
-            f"{self._base_url}/v1.0/reports/app_audit_trail_search_after",
-            json=payload,
-        )
-
-        # If upstream reports this report config doesn't exist, fallback gracefully
-        if response.status_code == 400:
-            try:
-                body = response.json()
-                msg = str(body.get("messageDescription") or body.get("messageId") or body)
-            except Exception:
-                msg = getattr(response, "text", "")
-            if "app_audit_trail_search_after" in msg:
-                logger.warning("app_audit_trail_search_after not supported by tenant, falling back to initial report endpoint")
-                # Fall back: call initial report endpoint and return normalized result
-                return await self.get_application_audit_trail(application_id, from_date, to_date, size, "time", "DESC")
-        self._handle_response(response)
-        payload = response.json()
-        # Normalize payload similar to get_application_audit_trail
-        events = []
+        events: List[Dict[str, Any]] = []
         next_token = None
-        prev_token = None
         total = None
         try:
             report = payload.get("response", {}).get("report", {})
@@ -316,17 +208,6 @@ class IBMVerifyAdminClient:
                     }
                 )
             if hits:
-                first = hits[0]
-                first_sort = first.get("sort") or []
-                # For prev token, use first item's sort
-                if first_sort and len(first_sort) >= 2:
-                    first_ts = first_sort[0]
-                    first_id = first_sort[1]
-                else:
-                    first_ts = first.get("_source", {}).get("time")
-                    first_id = first.get("_id")
-                if first_ts and first_id:
-                    prev_token = f'{first_ts}, "{first_id}"'
                 last = hits[-1]
                 last_sort = last.get("sort") or []
                 if last_sort and len(last_sort) >= 2:
@@ -339,8 +220,64 @@ class IBMVerifyAdminClient:
                     next_token = f'{last_ts}, "{last_id}"'
         except Exception:
             pass
-        normalized = {"events": events, "next": next_token, "total": total}
-        return normalized
+        return {"events": events, "next": next_token, "total": total}
+
+    async def app_audit_trail_search_after(
+        self,
+        application_id: str,
+        from_date: Optional[str] = None,
+        to_date: Optional[str] = None,
+        size: int = 25,
+        search_after: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Call the app_audit_trail_search_after endpoint and return parsed JSON.
+
+        Args:
+            application_id: Application ID to query
+            from_date: From timestamp (ms)
+            to_date: To timestamp (ms)
+            size: Page size
+            search_after: Optional opaque cursor
+         Returns:
+            Parsed JSON response as dict
+        """
+        now = datetime.now()
+        past_7_days = now - timedelta(days=7)
+        to_timestamp = to_date or str(int(now.timestamp() * 1000))
+        from_timestamp = from_date or str(int(past_7_days.timestamp() * 1000))
+        payload = {
+            "APPID": application_id,
+            "FROM": from_timestamp,
+            "TO": to_timestamp,
+            "SIZE": size if size > 0 else 25,
+            "SORT_BY": "time",
+            "SORT_ORDER": "DESC",
+            "SEARCH_AFTER": search_after,
+        }
+
+        response = await self._client.post(
+            f"{self._base_url}/v1.0/reports/app_audit_trail_search_after",
+            json=payload,
+        )
+
+        # If upstream reports this report config doesn't exist, fallback gracefully
+        if response.status_code == 400:
+            try:
+                body = response.json()
+                msg = str(body.get("messageDescription") or body.get("messageId") or body)
+            except Exception:
+                msg = getattr(response, "text", "")
+            if "app_audit_trail_search_after" in msg:
+                logger.warning(
+                    "app_audit_trail_search_after not supported by tenant, falling back to initial report endpoint"
+                )
+                # Fall back: call initial report endpoint and return normalized result
+                return await self.get_application_audit_trail(
+                    application_id, from_date, to_date, size, "time", "DESC"
+                )
+        self._handle_response(response)
+        payload = response.json()
+        return self._normalize_audit_report(payload)
 
     async def get_client_secret(self, client_id: str) -> Dict[str, Any]:
 

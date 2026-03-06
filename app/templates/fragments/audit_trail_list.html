@@ -1,0 +1,51 @@
+<div id="audit-trail-list">
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>{{ 'User' }}</th>
+          <th>{{ 'IP' }}</th>
+          <th>{{ 'Result' }}</th>
+          <th>{{ 'Country' }}</th>
+          <th>{{ 'Time' }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if audit_trail_rows %}
+          {% for entry in audit_trail_rows %}
+            <tr>
+              <td>
+                <div class="table-actions">
+                  <span>
+                    {% if entry.username_known %}
+                      {{ entry.username_display }}
+                    {% else %}
+                      {{ t('applications.usage.audit_trail.unknown_user') }}
+                    {% endif %}
+                  </span>
+                  {% if not entry.username_known %}
+                    <span class="pill pill-muted">{{ t('applications.usage.audit_trail.unknown_tag') }}</span>
+                  {% endif %}
+                </div>
+              </td>
+              <td>{{ entry.origin_display }}</td>
+              <td>{{ entry.result }}</td>
+              <td>{{ entry.country }}</td>
+              <td>{% if entry.time_seconds %}<span class="js-local-datetime" data-epoch-seconds="{{ entry.time_seconds }}">{{ entry.time_seconds }}</span>{% else %}N/A{% endif %}</td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="5">No audit events</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+  <div id="audit-trail-load-more-wrapper" class="gcds-mt-100">
+    {% if next and has_next %}
+      <!-- Visible Load more button on initial page -->
+      <button id="audit-trail-load-more" class="gcds-button" hx-get="/applications/{{ app_id }}/usage?SEARCH_AFTER={{ next|urlencode }}&append=1" hx-target="#audit-trail-rows" hx-swap="beforeend" hx-trigger="click">Load more</button>
+    {% else %}
+      <div id="audit-trail-load-more" aria-hidden="true"></div>
+    {% endif %}
+  </div>
+</div>

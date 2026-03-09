@@ -25,6 +25,8 @@ from app.repository.session_store import (
 )
 from app.controller.web.routes import router as web_router
 from app.controller.web.fragments import router as fragments_router
+# new fragments routes for edit fragments
+from app.controller.web.fragments_routes import router as fragments_edit_router
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -95,5 +97,7 @@ def create_app() -> FastAPI:
     app.include_router(api_router)
     app.include_router(web_router)
     app.include_router(fragments_router)
+    # include edit fragments router (new)
+    app.include_router(fragments_edit_router)
 
     return app

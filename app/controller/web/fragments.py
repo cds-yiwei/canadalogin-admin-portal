@@ -512,7 +512,7 @@ async def add_owner_modal(request: Request, _user: dict = Depends(require_web_us
     return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
 
 
-@router.post("/applications/{app_id}/edit/application-info")
+@router.post("/applications/{app_id}/edit/application-info", response_class=HTMLResponse)
 async def submit_application_info(request: Request, app_id: str, _user: dict = Depends(require_web_user), service: AdminService = Depends(get_admin_service)):
     form = await request.form()
     name = str(form.get("name") or "").strip()
@@ -551,7 +551,7 @@ async def submit_application_info(request: Request, app_id: str, _user: dict = D
         return Response(status_code=501)
 
 
-@router.post("/applications/{app_id}/edit/oidc-settings")
+@router.post("/applications/{app_id}/edit/oidc-settings", response_class=HTMLResponse)
 async def submit_oidc_settings(request: Request, app_id: str, _user: dict = Depends(require_web_user), service: AdminService = Depends(get_admin_service)):
     form = await request.form()
     redirect_text = str(form.get("redirectUris") or "").strip()
@@ -577,7 +577,7 @@ async def submit_oidc_settings(request: Request, app_id: str, _user: dict = Depe
         return Response(status_code=501)
 
 
-@router.post("/applications/{app_id}/edit/single-logout")
+@router.post("/applications/{app_id}/edit/single-logout", response_class=HTMLResponse)
 async def submit_single_logout(request: Request, app_id: str, _user: dict = Depends(require_web_user), service: AdminService = Depends(get_admin_service)):
     form = await request.form()
     logout_option = str(form.get("logoutOption") or "").strip()
@@ -609,7 +609,7 @@ async def submit_single_logout(request: Request, app_id: str, _user: dict = Depe
         return Response(status_code=501)
 
 
-@router.post("/applications/{app_id}/edit/people")
+@router.post("/applications/{app_id}/edit/people", response_class=HTMLResponse)
 async def submit_people(request: Request, app_id: str, _user: dict = Depends(require_web_user), service: AdminService = Depends(get_admin_service)):
     form = await request.form()
     owners_text = str(form.get("owners") or "").strip()

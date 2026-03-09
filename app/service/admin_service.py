@@ -276,6 +276,12 @@ class AdminService:
                         logger.error("Upstream response headers: %s", dict(headers))
                     except Exception:
                         pass
+                # If no resp info available, also log the outgoing payload at ERROR so it's always visible
+                if resp is None:
+                    try:
+                        logger.error("Outgoing update_application payload (on failure): %s", updated)
+                    except Exception:
+                        pass
             except Exception:
                 # Best-effort logging; do not mask the original exception
                 pass

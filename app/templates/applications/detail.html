@@ -22,6 +22,9 @@
 <!-- Application Info Section -->
 <section class="gcds-mb-200">
   <gcds-heading tag="h2">{{ t('applications.create.sections.application_info') }}</gcds-heading>
+  <div class="section-actions" style="float:right;margin-top:-36px;">
+    <gcds-button type="button" hx-get="/fragments/application-info/edit?app_id={{ app_id | urlencode }}" hx-swap="outerHTML">{{ t('common.edit') }}</gcds-button>
+  </div>
   <div class="table-wrapper">
     <table class="data-table">
       <tbody>
@@ -71,6 +74,9 @@
   <!-- Basic OIDC Subsection -->
   <div class="gcds-mb-200">
     <gcds-heading tag="h3">{{ t('applications.create.sections.basic_oidc') }}</gcds-heading>
+    <div class="section-actions" style="float:right;margin-top:-36px;">
+      <gcds-button type="button" hx-get="/fragments/oidc-settings/edit?app_id={{ app_id | urlencode }}" hx-swap="outerHTML">{{ t('common.edit') }}</gcds-button>
+    </div>
     <div class="table-wrapper">
       <table class="data-table">
         <tbody>
@@ -215,6 +221,9 @@
   <!-- Single Logout Subsection -->
   <div class="gcds-mb-200">
     <gcds-heading tag="h3">{{ t('applications.create.sections.single_logout') }}</gcds-heading>
+    <div class="section-actions" style="float:right;margin-top:-36px;">
+      <gcds-button type="button" hx-get="/fragments/single-logout/edit?app_id={{ app_id | urlencode }}" hx-swap="outerHTML">{{ t('common.edit') }}</gcds-button>
+    </div>
     <div class="table-wrapper">
       <table class="data-table">
         <tbody>

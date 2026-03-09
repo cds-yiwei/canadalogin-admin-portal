@@ -115,6 +115,11 @@ applications:
     title: Utilisation de l'application
     description: Donnees d'utilisation pour {name}.
     back_to_detail: Retour aux details
+    start_date: "Date de début"
+    end_date: "Date de fin"
+    apply: "Appliquer"
+    note_max_days: "Sélectionnez jusqu'à {days} jours"
+    invalid_date: "Sélection de date invalide: {msg}"
     total_logins_title: Connexions totales
     total_logins:
       successful: Connexions reussies

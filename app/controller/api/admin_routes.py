@@ -173,19 +173,25 @@ async def get_application_usage_api(
 
     Returns a simplified payload: { events: [...], next, total, has_next }
     """
+
+    # Normalize incoming dates similar to web controller: accept YYYY-MM-DD or ms and convert to ms
+    # reuse shared normalization util
+    from app.controller.web._utils_dates import normalize_date_range
+    norm_from, norm_to, _err = normalize_date_range(from_date, to_date, max_range_days=89)
+
     # prefer SEARCH_AFTER cursor if present
     search_after = request.query_params.get("SEARCH_AFTER")
     if search_after is not None:
         audit_trail_result = await service.get_application_audit_trail_search_after(
             application_id,
-            from_date,
-            to_date,
+            norm_from,
+            norm_to,
             size=size if size else 25,
             search_after=search_after,
         )
     else:
         audit_trail_result = await service.get_application_audit_trail(
-            application_id, from_date, to_date, size, sort_by, sort_order
+            application_id, norm_from, norm_to, size, sort_by, sort_order
         )
 
     events = audit_trail_result.get("events", []) if isinstance(audit_trail_result, dict) else []

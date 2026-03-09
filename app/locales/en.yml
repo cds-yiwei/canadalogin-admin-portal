@@ -113,6 +113,11 @@ applications:
     title: "Application usage"
     description: "Usage data for {name}."
     back_to_detail: "Back to details"
+    start_date: "Start date"
+    end_date: "End date"
+    apply: "Apply"
+    note_max_days: "Select up to {days} days"
+    invalid_date: "Invalid date selection: {msg}"
     total_logins_title: "Total logins"
     total_logins:
       successful: "Successful logins"

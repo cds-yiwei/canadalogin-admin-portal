@@ -1,0 +1,37 @@
+{
+  "thinking_level": "medium",
+  "python": {
+    "version": "3.12",
+    "venv": ".venv",
+    "install": "pip install -r requirements-dev.txt"
+  },
+  "node": {
+    "required": true,
+    "install": "npm ci",
+    "css_build": "npm run build:css"
+  },
+  "tests": {
+    "unit": "pytest -q tests/unit/",
+    "all": "pytest -q"
+  },
+  "skills": [
+    "quick-setup",
+    "debug-helper",
+    "starsessions",
+    "ibm-security-verify",
+    "context-management",
+    "web-search",
+    "gc-design-system",
+    "authlib"
+  ],
+  "prechecks": [
+    "python -m pip install -r requirements-dev.txt",
+    "npm ci"
+  ],
+  "open_files": [
+    "AGENTS.md",
+    "app/main.py",
+    "pyproject.toml"
+  ],
+  "notes": "Refer to repository AGENTS.md for full operational guidance. Do not add secrets to code."
+}

@@ -10,6 +10,14 @@
 </div>
 
 <section class="gcds-mb-200">
+  <form id="usage-filter-form" class="gcds-mt-100" method="get" action="">
+    <label for="start_date">{{ t('applications.usage.start_date') }}</label>
+    <input type="date" id="start_date" name="from_date" max="" value="{{ request.query_params.get('from_date', '') }}" />
+    <label for="end_date">{{ t('applications.usage.end_date') }}</label>
+    <input type="date" id="end_date" name="to_date" value="{{ request.query_params.get('to_date', '') }}" />
+    <gcds-button id="usage-apply" type="submit">{{ t('applications.usage.apply') }}</gcds-button>
+    <div class="muted">{{ t('applications.usage.note_max_days', days=89) }}</div>
+  </form>
   <gcds-heading tag="h2">{{ t('applications.usage.total_logins_title') }}</gcds-heading>
   <div class="card-grid text-center align-content-center">
     <section class="card">
@@ -103,6 +111,8 @@
   </tr>
 </template>
 
+{% include 'applications/usage_date_script.html' %}
+
 <script>
 (function(){
   const btn = document.getElementById('audit-trail-load-more');
@@ -147,7 +157,16 @@
       } else {
         btn.textContent = L_LOADING;
       }
-      const resp = await fetch(`/api/v1/applications/{{ app_id }}/usage?SEARCH_AFTER=${encodeURIComponent(next)}&append=1`, {
+      // include current date filter parameters so paginated calls respect the selected range
+      const params = new URLSearchParams(window.location.search);
+      const fromParam = document.getElementById('start_date') ? document.getElementById('start_date').value : params.get('from_date');
+      const toParam = document.getElementById('end_date') ? document.getElementById('end_date').value : params.get('to_date');
+      const qs = new URLSearchParams();
+      qs.set('SEARCH_AFTER', next);
+      qs.set('append', '1');
+      if(fromParam) qs.set('from_date', fromParam);
+      if(toParam) qs.set('to_date', toParam);
+      const resp = await fetch(`/api/v1/applications/{{ app_id }}/usage?${qs.toString()}`, {
         headers: { 'Accept': 'application/json' }
       });
       if(!resp.ok) throw new Error('Network error');

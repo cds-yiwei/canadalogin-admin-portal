@@ -277,6 +277,21 @@ async def application_usage_page(
     user: dict = Depends(require_web_user),
     service: AdminService = Depends(get_admin_service),
 ):
+    # Normalize incoming date query params using shared utility
+    from app.controller.web._utils_dates import normalize_date_range
+    use_from, use_to, error_message = normalize_date_range(from_date, to_date, max_range_days=89)
+
+    # If there was a validation/parsing error, show a flash_toast to the user
+    if error_message:
+        locale = get_request_locale(request)
+        # Format translated message with the raw msg
+        body = translate(locale, 'applications.usage.invalid_date', msg=error_message)
+        request.session['flash_toast'] = {
+            'title': translate(locale, 'common.error'),
+            'body': body,
+            'variant': 'warning',
+        }
+
     application = await service.get_application_detail(application_id)
     if not isinstance(application, dict):
         application = {}
@@ -293,7 +308,7 @@ async def application_usage_page(
         else ""
     )
 
-    total_logins = await service.get_application_total_logins(application_id, from_date, to_date)
+    total_logins = await service.get_application_total_logins(application_id, use_from, use_to)
     parsed_total_logins: ApplicationTotalLoginsResponse | None = None
     try:
         parsed_total_logins = ApplicationTotalLoginsResponse.model_validate(total_logins)
@@ -317,7 +332,7 @@ async def application_usage_page(
     current_page = None
 
     audit_trail_result = await service.get_application_audit_trail(
-        application_id, from_date, to_date, size, sort_by, sort_order
+        application_id, use_from, use_to, size, sort_by, sort_order
     )
 
     events = audit_trail_result.get("events", [])

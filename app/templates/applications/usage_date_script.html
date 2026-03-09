@@ -1,0 +1,54 @@
+<script>
+// Date picker defaults and validation: default to last 7 days, max range 89 days
+(function(){
+  function isoDate(d){ return d.toISOString().slice(0,10); }
+  document.addEventListener('DOMContentLoaded', function(){
+    try{
+      const start = document.getElementById('start_date');
+      const end = document.getElementById('end_date');
+      if(!start || !end) return;
+      const today = new Date();
+      const defaultEnd = today;
+      const defaultStart = new Date(today);
+      defaultStart.setDate(defaultStart.getDate() - 6); // last 7 days including today
+      // Set max selectable end date to today
+      end.max = isoDate(defaultEnd);
+      start.max = isoDate(defaultEnd);
+
+      // Also enforce that start cannot be earlier than (today - 89 days)
+      const earliest = new Date(today);
+      earliest.setDate(earliest.getDate() - 89);
+      start.min = isoDate(earliest);
+
+      // If URL has params use them, otherwise set defaults
+      const params = new URLSearchParams(window.location.search);
+      if(params.get('from_date')) start.value = params.get('from_date'); else start.value = isoDate(defaultStart);
+      if(params.get('to_date')) end.value = params.get('to_date'); else end.value = isoDate(defaultEnd);
+
+      // Validation: ensure range <= 89 days
+      const maxRangeDays = 89;
+      function validateRange(){
+        if(!start.value || !end.value) return true;
+        const s = new Date(start.value);
+        const e = new Date(end.value);
+        const diff = Math.floor((e - s) / (1000*60*60*24));
+        if(diff < 0){
+          alert('Start date must be before or equal to end date');
+          return false;
+        }
+        if(diff > maxRangeDays){
+          alert(`Please select a range of at most ${maxRangeDays} days`);
+          return false;
+        }
+        return true;
+      }
+      const form = document.getElementById('usage-filter-form');
+      form.addEventListener('submit', function(e){
+        if(!validateRange()){
+          e.preventDefault();
+        }
+      });
+    }catch(e){console.error('date picker init',e);} 
+  });
+})();
+</script>

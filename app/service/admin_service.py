@@ -197,31 +197,63 @@ class AdminService:
         return await self._client.is_user_in_group(group_id, user_id)
 
     async def update_application_section(self, application_id: str, section: str, payload: dict) -> Any:
-        """Update a subsection of the application settings.
-        This single method provides a thin abstraction; implementation should call
-        the repository / IBM Verify client to persist changes. For now, attempt
-        to call an underlying client if available, otherwise raise NotImplementedError.
+        """Update a single logical section of an application and persist via the repository client.
+
+        This method performs local merges into the current application detail and delegates
+        persistence to the IBMVerifyAdminClient. It catches HTTP/client errors and
+        raises a RuntimeError with helpful context (status / correlation id) so callers
+        can handle user-facing messaging.
         """
-        # Attempt to call client.update_application if available; otherwise, try
-        # a best-effort mapping to known client methods.
-        client = getattr(self, "_client", None)
-        if not client:
-            raise NotImplementedError("No backend client available to update application")
 
-        # If client provides a flexible update_application API, use it directly
-        if hasattr(client, "update_application"):
-            return await client.update_application(application_id, payload)
+        current_detail = await self.get_application_detail(application_id)
+        if not current_detail:
+            raise ValueError(f"Application with ID {application_id} not found.")
 
-        # Fallback: try partial updates based on section
+        # Make a shallow copy to avoid mutating cached objects
+        updated = dict(current_detail)
+
+        # Update the relevant section with new payload
         if section == "application_info":
-            # payload may contain name, description, providers.saml.properties.companyName, providers.oidc.applicationUrl
-            return await client.patch_application(application_id, payload)
-        if section == "oidc_settings":
-            return await client.patch_application(application_id, payload)
-        if section == "single_logout":
-            return await client.patch_application(application_id, payload)
-        if section == "people":
-            # owners update
-            return await client.patch_application(application_id, payload)
+            updated["name"] = payload.get("name", updated.get("name"))
+            updated["description"] = payload.get("description", updated.get("description"))
+            providers = updated.get("providers", {})
+            if "saml" in providers and payload.get("providers", {}).get("saml"):
+                saml_props = providers["saml"].get("properties", {})
+                saml_payload_props = payload["providers"]["saml"].get("properties", {})
+                saml_props["companyName"] = saml_payload_props.get("companyName", saml_props.get("companyName"))
+                providers["saml"]["properties"] = saml_props
+            if "oidc" in providers and payload.get("providers", {}).get("oidc"):
+                oidc_props = providers["oidc"].get("properties", {})
+                oidc_payload_props = payload["providers"]["oidc"].get("properties", {})
+                oidc_props["applicationUrl"] = oidc_payload_props.get(
+                    "applicationUrl", oidc_props.get("applicationUrl")
+                )
+                providers["oidc"]["properties"] = oidc_props
+            updated["providers"] = providers
 
-        raise NotImplementedError(f"update_application_section handling for '{section}' is not implemented")
+        try:
+            result = await self._client.update_application(application_id, updated)
+            return result
+        except Exception as exc:
+            # Attempt to extract correlation id or status from the client exception if available
+            corr = None
+            status = None
+            try:
+                # If the client raised an HTTPError-like exception with response attr
+                resp = getattr(exc, "response", None)
+                if resp is not None:
+                    status = getattr(resp, "status_code", None)
+                    # headers may be a dict-like
+                    headers = getattr(resp, "headers", {}) or {}
+                    corr = headers.get("x-correlation-id") or headers.get("X-Correlation-Id") or headers.get("x-global-transaction-id")
+            except Exception:
+                pass
+            msg = f"update_application failed"
+            if status:
+                msg = f"{msg} (status={status})"
+            if corr:
+                msg = f"{msg} (corr={corr})"
+            # Re-raise as RuntimeError to be handled by controller
+            raise RuntimeError(msg) from exc
+
+

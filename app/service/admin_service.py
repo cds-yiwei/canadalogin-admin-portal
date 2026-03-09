@@ -232,6 +232,14 @@ class AdminService:
             updated["providers"] = providers
 
         try:
+            # Log outgoing payload for debugging
+            try:
+                import logging
+                logger = logging.getLogger("app.admin_service")
+                logger.debug("Outgoing update_application payload for %s: %s", application_id, updated)
+            except Exception:
+                pass
+
             result = await self._client.update_application(application_id, updated)
             return result
         except Exception as exc:

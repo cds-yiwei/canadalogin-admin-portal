@@ -195,3 +195,33 @@ class AdminService:
     async def is_user_in_group(self, group_id: str, user_id: str) -> bool:
         """Check if a user is a member of a group."""
         return await self._client.is_user_in_group(group_id, user_id)
+
+    async def update_application_section(self, application_id: str, section: str, payload: dict) -> Any:
+        """Update a subsection of the application settings.
+        This single method provides a thin abstraction; implementation should call
+        the repository / IBM Verify client to persist changes. For now, attempt
+        to call an underlying client if available, otherwise raise NotImplementedError.
+        """
+        # Attempt to call client.update_application if available; otherwise, try
+        # a best-effort mapping to known client methods.
+        client = getattr(self, "_client", None)
+        if not client:
+            raise NotImplementedError("No backend client available to update application")
+
+        # If client provides a flexible update_application API, use it directly
+        if hasattr(client, "update_application"):
+            return await client.update_application(application_id, payload)
+
+        # Fallback: try partial updates based on section
+        if section == "application_info":
+            # payload may contain name, description, providers.saml.properties.companyName, providers.oidc.applicationUrl
+            return await client.patch_application(application_id, payload)
+        if section == "oidc_settings":
+            return await client.patch_application(application_id, payload)
+        if section == "single_logout":
+            return await client.patch_application(application_id, payload)
+        if section == "people":
+            # owners update
+            return await client.patch_application(application_id, payload)
+
+        raise NotImplementedError(f"update_application_section handling for '{section}' is not implemented")

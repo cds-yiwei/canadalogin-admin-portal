@@ -16,6 +16,7 @@ from app.controller._utils import (
     _extract_application_id,
 )
 from app.controller._utils import _parse_audit_trail as parse_audit_trail
+from app.controller._utils_dates import normalize_date_range
 from app.core.roles import Role
 from app.dependencies.auth import require_api_access, require_web_user
 from app.dependencies.services import get_admin_service
@@ -176,7 +177,7 @@ async def get_application_usage_api(
 
     # Normalize incoming dates similar to web controller: accept YYYY-MM-DD or ms and convert to ms
     # reuse shared normalization util
-    from app.controller.web._utils_dates import normalize_date_range
+    from app.controller._utils_dates import normalize_date_range
     norm_from, norm_to, _err = normalize_date_range(from_date, to_date, max_range_days=89)
 
     # prefer SEARCH_AFTER cursor if present

@@ -16,6 +16,7 @@ from app.controller.web._utils import (
     _build_application_creation_payload,
     _parse_audit_trail as parse_audit_trail,
 )
+from app.controller._utils_dates import normalize_date_range
 from app.controller.schemas import (
     ApplicationDetailData,
     ApplicationTotalLoginsResponse,

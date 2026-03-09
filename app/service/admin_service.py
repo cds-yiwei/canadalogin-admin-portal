@@ -1,6 +1,10 @@
-from typing import Any
+from typing import Any, Optional
 
 class AdminService:
+    def __init__(self, client: Optional[object] = None):
+        """AdminService accepts an optional repository/client instance used to talk to external APIs."""
+        self._client = client
+
     # existing methods...
 
     async def update_application_section(self, application_id: str, section: str, payload: dict) -> Any:

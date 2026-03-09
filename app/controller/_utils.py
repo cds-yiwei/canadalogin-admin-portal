@@ -300,6 +300,168 @@ def _build_application_creation_payload(form_data: dict, owners: List[str]) -> d
 
     return ApplicationCreation.model_validate(payload).model_dump(exclude_none=True)
 
+async def _build_application_update_payload(application_id: str, adminService: Any) -> dict:
+    """Build IBM Verify application update payload from form data.
+
+    Only includes fields that are present in the form data for partial updates.
+    """
+    payload: Dict[str, Any] = {
+        "name": "demo",
+        "templateId": "998",
+        "applicationRefId": "",
+        "providers": {
+            "saml": {
+                "properties": {
+                    "companyName": "demo comp",
+                    "generateUniqueID": "false"
+                },
+                "justInTimeProvisioning": "false"
+            },
+            "sso": {
+                "userOptions": "oidc"
+            },
+            "oidc": {
+                "applicationUrl": "https://asdf.com",
+                "properties": {
+                    "grantTypes": {
+                        "authorizationCode": "true",
+                        "implicit": "false",
+                        "deviceFlow": "false",
+                        "ropc": "false",
+                        "jwtBearer": "false",
+                        "policyAuth": "false",
+                        "clientCredentials": "false",
+                        "tokenExchange": "false"
+                    },
+                    "redirectUris": [
+                        "https://asdf.com/callback"
+                    ],
+                    "idTokenSigningAlg": "RS256",
+                    "accessTokenExpiry": 3600,
+                    "refreshTokenExpiry": 86400,
+                    "doNotGenerateClientSecret": "false",
+                    "generateRefreshToken": "true",
+                    "renewRefreshTokenExpiry": 86400,
+                    "clientId": "c24c9d1e-4f2a-432f-bf67-9f5bb7b8b7ab",
+                    "clientSecret": "jbnGR4evBT",
+                    "consentType": "dpcm",
+                    "renewRefreshToken": "true",
+                    "additionalConfig": {
+                        "requestObjectMaxExpFromNbf": 1800,
+                        "authorizeRspSigningAlg": "RS256",
+                        "allowedClientAssertionVerificationKeys": [],
+                        "clientAuthMethod": "default",
+                        "validateDPoPProofJti": "false",
+                        "subjectTokenTypes": [
+                            "urn:ietf:params:oauth:token-type:access_token"
+                        ],
+                        "certificateBoundAccessTokens": "false",
+                        "logoutRedirectURIs": [
+                            "https://asdf.com/after-logout"
+                        ],
+                        "requestObjectSigningAlg": "RS256",
+                        "requestedTokenTypes": [
+                            "urn:ietf:params:oauth:token-type:access_token"
+                        ],
+                        "actorTokenRequired": "false",
+                        "responseModes": [
+                            "query",
+                            "fragment",
+                            "form_post",
+                            "query.jwt",
+                            "fragment.jwt",
+                            "form_post.jwt"
+                        ],
+                        "requestObjectParametersOnly": "false",
+                        "responseTypes": [
+                            "none",
+                            "code"
+                        ],
+                        "logoutOption": "back_channel",
+                        "sessionRequired": "true",
+                        "exchangeForSSOSessionOption": "default",
+                        "logoutURI": "https://asdf.com/logout",
+                        "useUserDefaultEntitlements": "true",
+                        "dpopBoundAccessTokens": "false",
+                        "oidcv3": "true",
+                        "requestObjectRequireExp": "true",
+                        "authorizeRspEncryptionEnc": "none",
+                        "dpopProofSigningAlg": "RS256",
+                        "authorizeRspEncryptionAlg": "none",
+                        "requirePushAuthorize": "false",
+                        "actorTokenTypes": [
+                            "urn:ietf:params:oauth:token-type:access_token"
+                        ],
+                        "requestUris": []
+                    },
+                    "idTokenEncryptAlg": "none",
+                    "idTokenEncryptEnc": "none"
+                },
+                "scopes": [],
+                "entitlements": [],
+                "restrictEntitlements": "true",
+                "grantProperties": {
+                    "generateDeviceFlowQRCode": "false"
+                },
+                "token": {
+                    "accessTokenType": "default",
+                    "audiences": []
+                },
+                "consentAction": "always_prompt",
+                "requirePkceVerification": "true"
+            }
+        },
+        "applicationState": "true",
+        "approvalRequired": "false",
+        "description": "demo desc",
+        "signonState": "true",
+        "provisioningMode": "",
+        "identitySources": [],
+        "visibleOnLaunchpad": "true",
+        "provisioning": {
+            "authentication": {},
+            "attributeMappings": [],
+            "reverseAttributeMappings": [],
+            "policies": {
+                "provPolicy": "disabled",
+                "deProvPolicy": "disabled",
+                "deProvAction": "delete",
+                "passwordSync": "disabled",
+                "adoptionPolicy": {
+                    "matchingAttributes": [],
+                    "remediationPolicy": {
+                        "policy": "NONE",
+                        "autoRemediateOnUpdate": "false"
+                    }
+                },
+                "gracePeriod": 30
+            },
+            "extension": {},
+            "provisioningState": "disabled",
+            "sendNotifications": "false",
+            "generatePassword": "false",
+            "generatePasswordOnRestore": "false",
+            "generatedPasswordRecipients": []
+        },
+        "customization": {
+            "themeId": "default"
+        },
+        "apiAccessClients": [],
+        "adaptiveAuthentication": {},
+        "owners": [
+            "772001EFL1"
+        ],
+        "customIcon": "",
+        "attributeMappings": []
+    }
+    
+    current_detail = await adminService.get_application_detail(application_id)
+    if not current_detail:
+        raise ValueError(f"Application with ID {application_id} not found.")
+    payload.update({k: v for k, v in current_detail.items() if k in payload})
+    
+
+    return payload
 
 def _parse_audit_trail(raw_payload: Any) -> list[dict[str, Any]]:
     """Parse and transform audit trail response from IBM Verify API.

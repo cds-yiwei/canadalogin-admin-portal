@@ -238,6 +238,8 @@ class AdminService:
             # Attempt to extract correlation id or status from the client exception if available
             corr = None
             status = None
+            headers = {}
+            resp = None
             try:
                 # If the client raised an HTTPError-like exception with response attr
                 resp = getattr(exc, "response", None)
@@ -248,6 +250,28 @@ class AdminService:
                     corr = headers.get("x-correlation-id") or headers.get("X-Correlation-Id") or headers.get("x-global-transaction-id")
             except Exception:
                 pass
+
+            # Log detailed info for debugging (include headers and any response text if available)
+            try:
+                import logging
+
+                logger = logging.getLogger("app.admin_service")
+                logger.error("Failed update_application: status=%s corr=%s exception=%s", status, corr, exc)
+                if resp is not None:
+                    try:
+                        text = getattr(resp, "text", None)
+                        if text:
+                            logger.error("Upstream response body: %s", text)
+                    except Exception:
+                        pass
+                    try:
+                        logger.error("Upstream response headers: %s", dict(headers))
+                    except Exception:
+                        pass
+            except Exception:
+                # Best-effort logging; do not mask the original exception
+                pass
+
             msg = f"update_application failed"
             if status:
                 msg = f"{msg} (status={status})"

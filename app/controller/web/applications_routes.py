@@ -285,11 +285,11 @@ async def application_usage_page(
     if error_message:
         locale = get_request_locale(request)
         # Format translated message with the raw msg
-        body = translate(locale, 'applications.usage.invalid_date', msg=error_message)
-        request.session['flash_toast'] = {
-            'title': translate(locale, 'common.error'),
-            'body': body,
-            'variant': 'warning',
+        body = translate(locale, "applications.usage.invalid_date", msg=error_message)
+        request.session["flash_toast"] = {
+            "title": translate(locale, "common.error"),
+            "body": body,
+            "variant": "warning",
         }
 
     application = await service.get_application_detail(application_id)

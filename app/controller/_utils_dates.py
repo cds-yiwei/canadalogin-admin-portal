@@ -2,7 +2,9 @@ from typing import Tuple, Optional
 import datetime as _dt
 
 
-def normalize_date_range(from_date: Optional[str], to_date: Optional[str], max_range_days: int = 89) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+def normalize_date_range(
+    from_date: Optional[str], to_date: Optional[str], max_range_days: int = 89
+) -> Tuple[Optional[str], Optional[str], Optional[str]]:
     """Normalize incoming date strings.
 
     Accepts either epoch-ms strings (digits) or ISO date strings (YYYY-MM-DD).
@@ -40,4 +42,8 @@ def normalize_date_range(from_date: Optional[str], to_date: Optional[str], max_r
                     error_message = f"Please select a range of at most {max_range_days} days"
     except Exception:
         error_message = "Invalid date format"
-    return from_ms if from_ms and not error_message else None, to_ms if to_ms and not error_message else None, error_message
+    return (
+        from_ms if from_ms and not error_message else None,
+        to_ms if to_ms and not error_message else None,
+        error_message,
+    )

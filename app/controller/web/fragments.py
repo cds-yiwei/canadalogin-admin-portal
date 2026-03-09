@@ -24,6 +24,21 @@ async def requests_fragment(request: Request):
     pass
 
 
+# Validation helpers
+import re
+
+def _is_valid_url(value: str) -> bool:
+    if not value:
+        return False
+    return bool(re.match(r"^https?://[\w\-\.]+(:\d+)?(/.*)?$", value))
+
+
+def _is_valid_email(value: str) -> bool:
+    if not value:
+        return False
+    return bool(re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", value))
+
+
 # Edit fragment GET handlers (application info, oidc settings, single logout, people)
 @router.get("/application-info/edit", response_class=HTMLResponse)
 async def fragment_application_info_edit(request: Request, app_id: str, _user: dict = Depends(require_web_user), service: AdminService = Depends(get_admin_service)):

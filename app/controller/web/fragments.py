@@ -562,6 +562,21 @@ async def submit_application_info(request: Request, app_id: str, _user: dict = D
         locale = get_request_locale(request)
         hx_trigger = {"toast": {"title": translate(locale, "toast.saved_title"), "body": translate(locale, "applications.detail.update_success"), "variant": "success"}, "redirect": f"/applications/{app_id}"}
         return Response("", headers={"HX-Trigger": json.dumps(hx_trigger), "HX-Redirect": f"/applications/{app_id}"})
+    except RuntimeError as exc:
+        # Surface a user-friendly toast with correlation id if available
+        msg = str(exc)
+        corr = None
+        # attempt to parse '(corr=ID)' tail
+        import re as _re
+        m = _re.search(r"corr=([A-Za-z0-9\-]+)", msg)
+        if m:
+            corr = m.group(1)
+        locale = get_request_locale(request)
+        body = translate(locale, "applications.detail.update_failed")
+        if corr:
+            body = f"{body} (ref: {corr})"
+        hx = {"toast": {"title": translate(locale, "toast.error_title"), "body": body, "variant": "danger"}}
+        return Response("", headers={"HX-Trigger": json.dumps(hx)}, status_code=502)
     except NotImplementedError:
         return Response(status_code=501)
 
@@ -588,6 +603,19 @@ async def submit_oidc_settings(request: Request, app_id: str, _user: dict = Depe
         locale = get_request_locale(request)
         hx_trigger = {"toast": {"title": translate(locale, "toast.saved_title"), "body": translate(locale, "applications.detail.update_success"), "variant": "success"}, "redirect": f"/applications/{app_id}"}
         return Response("", headers={"HX-Trigger": json.dumps(hx_trigger), "HX-Redirect": f"/applications/{app_id}"})
+    except RuntimeError as exc:
+        msg = str(exc)
+        corr = None
+        import re as _re
+        m = _re.search(r"corr=([A-Za-z0-9\-]+)", msg)
+        if m:
+            corr = m.group(1)
+        locale = get_request_locale(request)
+        body = translate(locale, "applications.detail.update_failed")
+        if corr:
+            body = f"{body} (ref: {corr})"
+        hx = {"toast": {"title": translate(locale, "toast.error_title"), "body": body, "variant": "danger"}}
+        return Response("", headers={"HX-Trigger": json.dumps(hx)}, status_code=502)
     except NotImplementedError:
         return Response(status_code=501)
 
@@ -620,6 +648,19 @@ async def submit_single_logout(request: Request, app_id: str, _user: dict = Depe
         locale = get_request_locale(request)
         hx_trigger = {"toast": {"title": translate(locale, "toast.saved_title"), "body": translate(locale, "applications.detail.update_success"), "variant": "success"}, "redirect": f"/applications/{app_id}"}
         return Response("", headers={"HX-Trigger": json.dumps(hx_trigger), "HX-Redirect": f"/applications/{app_id}"})
+    except RuntimeError as exc:
+        msg = str(exc)
+        corr = None
+        import re as _re
+        m = _re.search(r"corr=([A-Za-z0-9\-]+)", msg)
+        if m:
+            corr = m.group(1)
+        locale = get_request_locale(request)
+        body = translate(locale, "applications.detail.update_failed")
+        if corr:
+            body = f"{body} (ref: {corr})"
+        hx = {"toast": {"title": translate(locale, "toast.error_title"), "body": body, "variant": "danger"}}
+        return Response("", headers={"HX-Trigger": json.dumps(hx)}, status_code=502)
     except NotImplementedError:
         return Response(status_code=501)
 
@@ -648,6 +689,19 @@ async def submit_people(request: Request, app_id: str, _user: dict = Depends(req
         locale = get_request_locale(request)
         hx_trigger = {"toast": {"title": translate(locale, "toast.saved_title"), "body": translate(locale, "applications.detail.update_success"), "variant": "success"}, "redirect": f"/applications/{app_id}"}
         return Response("", headers={"HX-Trigger": json.dumps(hx_trigger), "HX-Redirect": f"/applications/{app_id}"})
+    except RuntimeError as exc:
+        msg = str(exc)
+        corr = None
+        import re as _re
+        m = _re.search(r"corr=([A-Za-z0-9\-]+)", msg)
+        if m:
+            corr = m.group(1)
+        locale = get_request_locale(request)
+        body = translate(locale, "applications.detail.update_failed")
+        if corr:
+            body = f"{body} (ref: {corr})"
+        hx = {"toast": {"title": translate(locale, "toast.error_title"), "body": body, "variant": "danger"}}
+        return Response("", headers={"HX-Trigger": json.dumps(hx)}, status_code=502)
     except NotImplementedError:
         return Response(status_code=501)
 

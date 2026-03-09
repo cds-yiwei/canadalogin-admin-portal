@@ -1,0 +1,21 @@
+<div class='modal-panel' role='dialog' aria-modal='true'>
+  <div class='modal-header' style='display:flex; align-items:center; gap:12px;'>
+    <h3 class='modal-title'>{{ t('applications.detail.labels.owners') }}</h3>
+    <button class='modal-close' data-modal-close aria-label='Close'>×</button>
+  </div>
+  <div class='modal-body'>
+    <form class='gcds-stack' style='gap:12px;' hx-post='/applications/{{ app_id }}/edit/people' hx-swap='none'>
+      <label class='gcds-stack' style='gap:6px;'>
+        <span>{{ t('applications.detail.labels.owners') }}</span>
+        <small>{{ t('applications.detail.instructions.owners') }}</small>
+        <textarea name='owners' rows='4' class='gcds-textarea' placeholder='Enter one email per line'>{% if application_payload and application_payload.owners %}{% for owner in application_payload.owners %}{{ owner.email }}
+{% endfor %}{% endif %}</textarea>
+        {% if errors and errors.owners %}<div class='error'>{{ errors.owners }}</div>{% endif %}
+      </label>
+      <div style='display:flex; gap:10px; justify-content:flex-end;'>
+        <button type='button' class='btn secondary' data-modal-close>{{ t('common.cancel') }}</button>
+        <button type='submit' class='btn'>{{ t('common.save') }}</button>
+      </div>
+    </form>
+  </div>
+</div>

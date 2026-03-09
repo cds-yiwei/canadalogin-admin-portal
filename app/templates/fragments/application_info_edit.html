@@ -1,19 +1,31 @@
-<form hx-post="/applications/{{ app_id }}/edit/application-info" hx-swap="outerHTML">
+<form hx-post="/applications/{{ app_id }}/edit/application-info" hx-swap="none">
   <div>
     <label for="name">{{ t('applications.detail.labels.name') }}</label>
     <input id="name" name="name" type="text" value="{{ application_payload.name or '' }}">
+    {% if errors and errors.name %}
+      <div class="error">{{ errors.name }}</div>
+    {% endif %}
   </div>
   <div>
     <label for="description">{{ t('applications.detail.labels.description') }}</label>
     <textarea id="description" name="description">{{ application_payload.description or '' }}</textarea>
+    {% if errors and errors.description %}
+      <div class="error">{{ errors.description }}</div>
+    {% endif %}
   </div>
   <div>
     <label for="companyName">{{ t('applications.detail.labels.company_name') }}</label>
     <input id="companyName" name="companyName" type="text" value="{{ application_payload.providers.saml.properties.companyName if application_payload and application_payload.providers and application_payload.providers.saml and application_payload.providers.saml.properties and application_payload.providers.saml.properties.companyName else '' }}">
+    {% if errors and errors.companyName %}
+      <div class="error">{{ errors.companyName }}</div>
+    {% endif %}
   </div>
   <div>
     <label for="applicationUrl">{{ t('applications.detail.labels.application_url') }}</label>
     <input id="applicationUrl" name="applicationUrl" type="text" value="{{ application_payload.providers.oidc.applicationUrl if application_payload and application_payload.providers and application_payload.providers.oidc else '' }}">
+    {% if errors and errors.applicationUrl %}
+      <div class="error">{{ errors.applicationUrl }}</div>
+    {% endif %}
   </div>
   <div class="form-actions">
     <gcds-button type="submit">{{ t('common.save') }}</gcds-button>

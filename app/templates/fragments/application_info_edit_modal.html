@@ -1,0 +1,34 @@
+<div class='modal-panel' role='dialog' aria-modal='true'>
+  <div class='modal-header' style='display:flex; align-items:center; gap:12px;'>
+    <h3 class='modal-title'>{{ t('applications.create.sections.application_info') }}</h3>
+    <button class='modal-close' data-modal-close aria-label='Close'>×</button>
+  </div>
+  <div class='modal-body'>
+    <form class='gcds-stack' style='gap:12px;' hx-post='/applications/{{ app_id }}/edit/application-info' hx-swap='none'>
+      <label class='gcds-stack' style='gap:6px;'>
+        <span>{{ t('applications.detail.labels.name') }}</span>
+        <input name='name' type='text' required class='gcds-input' value='{{ application_payload.name or "" }}' />
+        {% if errors and errors.name %}<div class='error'>{{ errors.name }}</div>{% endif %}
+      </label>
+      <label class='gcds-stack' style='gap:6px;'>
+        <span>{{ t('applications.detail.labels.description') }}</span>
+        <textarea name='description' rows='3' class='gcds-textarea'>{{ application_payload.description or "" }}</textarea>
+        {% if errors and errors.description %}<div class='error'>{{ errors.description }}</div>{% endif %}
+      </label>
+      <label class='gcds-stack' style='gap:6px;'>
+        <span>{{ t('applications.detail.labels.company_name') }}</span>
+        <input name='companyName' type='text' class='gcds-input' value='{{ application_payload.providers.saml.properties.companyName if application_payload and application_payload.providers and application_payload.providers.saml and application_payload.providers.saml.properties and application_payload.providers.saml.properties.companyName else "" }}' />
+        {% if errors and errors.companyName %}<div class='error'>{{ errors.companyName }}</div>{% endif %}
+      </label>
+      <label class='gcds-stack' style='gap:6px;'>
+        <span>{{ t('applications.detail.labels.application_url') }}</span>
+        <input name='applicationUrl' type='text' class='gcds-input' value='{{ application_payload.providers.oidc.applicationUrl if application_payload and application_payload.providers and application_payload.providers.oidc else "" }}' />
+        {% if errors and errors.applicationUrl %}<div class='error'>{{ errors.applicationUrl }}</div>{% endif %}
+      </label>
+      <div style='display:flex; gap:10px; justify-content:flex-end;'>
+        <button type='button' class='btn secondary' data-modal-close>{{ t('common.cancel') }}</button>
+        <button type='submit' class='btn'>{{ t('common.save') }}</button>
+      </div>
+    </form>
+  </div>
+</div>

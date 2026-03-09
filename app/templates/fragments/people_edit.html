@@ -1,4 +1,4 @@
-<form hx-post="/applications/{{ app_id }}/edit/people" hx-swap="outerHTML">
+<form hx-post="/applications/{{ app_id }}/edit/people" hx-swap="none">
   <div>
     <label for="owners">{{ t('applications.detail.labels.owners') }}</label>
     <div>
@@ -6,6 +6,9 @@
     </div>
     <textarea id="owners" name="owners" placeholder="Enter one email per line">{% if application_payload and application_payload.owners %}{% for owner in application_payload.owners %}{{ owner.email }}
 {% endfor %}{% endif %}</textarea>
+    {% if errors and errors.owners %}
+      <div class="error">{{ errors.owners }}</div>
+    {% endif %}
   </div>
   <div class="form-actions">
     <gcds-button type="submit">{{ t('common.save') }}</gcds-button>

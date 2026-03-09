@@ -1,4 +1,4 @@
-<form hx-post="/applications/{{ app_id }}/edit/single-logout" hx-swap="outerHTML">
+<form hx-post="/applications/{{ app_id }}/edit/single-logout" hx-swap="none">
   <div>
     <label for="logoutOption">{{ t('applications.detail.labels.logout_method') }}</label>
     <select id="logoutOption" name="logoutOption">
@@ -6,15 +6,24 @@
       <option value="frontchannel" {% if logout_option == 'frontchannel' %}selected{% endif %}>{{ t('applications.create.logout_method.frontchannel') }}</option>
       <option value="backchannel" {% if logout_option == 'backchannel' %}selected{% endif %}>{{ t('applications.create.logout_method.backchannel') }}</option>
     </select>
+    {% if errors and errors.logoutOption %}
+      <div class="error">{{ errors.logoutOption }}</div>
+    {% endif %}
   </div>
   <div>
     <label for="logoutURI">{{ t('applications.detail.labels.logout_uri') }}</label>
     <input id="logoutURI" name="logoutURI" type="text" value="{% if application_payload and application_payload.providers and application_payload.providers.oidc and application_payload.providers.oidc.properties and application_payload.providers.oidc.properties.additionalConfig and application_payload.providers.oidc.properties.additionalConfig.logoutURI %}{{ application_payload.providers.oidc.properties.additionalConfig.logoutURI }}{% endif %}">
+    {% if errors and errors.logoutURI %}
+      <div class="error">{{ errors.logoutURI }}</div>
+    {% endif %}
   </div>
   <div>
     <label for="logoutRedirectURIs">{{ t('applications.detail.labels.post_logout_redirect_uris') }}</label>
     <textarea id="logoutRedirectURIs" name="logoutRedirectURIs" placeholder="Enter one URI per line">{% if application_payload and application_payload.providers and application_payload.providers.oidc and application_payload.providers.oidc.properties and application_payload.providers.oidc.properties.additionalConfig and application_payload.providers.oidc.properties.additionalConfig.logoutRedirectURIs %}{% for uri in application_payload.providers.oidc.properties.additionalConfig.logoutRedirectURIs %}{{ uri }}
 {% endfor %}{% endif %}</textarea>
+    {% if errors and errors.logoutRedirectURIs %}
+      <div class="error">{{ errors.logoutRedirectURIs }}</div>
+    {% endif %}
   </div>
   <div class="form-actions">
     <gcds-button type="submit">{{ t('common.save') }}</gcds-button>

@@ -1,8 +1,11 @@
-<form hx-post="/applications/{{ app_id }}/edit/oidc-settings" hx-swap="outerHTML">
+<form hx-post="/applications/{{ app_id }}/edit/oidc-settings" hx-swap="none">
   <div>
     <label for="redirectUris">{{ t('applications.detail.labels.redirect_url') }}</label>
     <textarea id="redirectUris" name="redirectUris" placeholder="Enter one URI per line">{% if application_payload and application_payload.providers and application_payload.providers.oidc and application_payload.providers.oidc.properties and application_payload.providers.oidc.properties.redirectUris %}{% for uri in application_payload.providers.oidc.properties.redirectUris %}{{ uri }}
 {% endfor %}{% endif %}</textarea>
+    {% if errors and errors.redirectUris %}
+      <div class="error">{{ errors.redirectUris }}</div>
+    {% endif %}
   </div>
   <div>
     <label>

@@ -198,6 +198,3 @@ class AdminService:
 
     async def update_application_section(self, application_id: str, payload: dict) -> Any:
         return await self._client.update_application(application_id, payload)
-        
-
-

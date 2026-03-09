@@ -236,7 +236,7 @@ class AdminService:
             try:
                 import logging
                 logger = logging.getLogger("app.admin_service")
-                logger.debug("Outgoing update_application payload for %s: %s", application_id, updated)
+                logger.info("Outgoing update_application payload for %s: %s", application_id, updated)
             except Exception:
                 pass
 

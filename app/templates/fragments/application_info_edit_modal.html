@@ -4,7 +4,7 @@
     <button class='modal-close' data-modal-close aria-label='Close'>×</button>
   </div>
   <div class='modal-body'>
-    <form class='gcds-stack' style='gap:12px;' hx-post='/applications/{{ app_id }}/edit/application-info' hx-swap='none'>
+    <form class='gcds-stack' style='gap:12px;' hx-post='/fragments/applications/{{ app_id }}/edit/application-info' hx-swap='none'>
       <label class='gcds-stack' style='gap:6px;'>
         <span>{{ t('applications.detail.labels.name') }}</span>
         <input name='name' type='text' required class='gcds-input' value='{{ application_payload.name or "" }}' />

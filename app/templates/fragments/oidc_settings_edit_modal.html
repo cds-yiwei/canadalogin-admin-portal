@@ -4,7 +4,7 @@
     <button class='modal-close' data-modal-close aria-label='Close'>×</button>
   </div>
   <div class='modal-body'>
-    <form class='gcds-stack' style='gap:12px;' hx-post='/applications/{{ app_id }}/edit/oidc-settings' hx-swap='none'>
+    <form class='gcds-stack' style='gap:12px;' hx-post='/fragments/applications/{{ app_id }}/edit/oidc-settings' hx-swap='none'>
       <label class='gcds-stack' style='gap:6px;'>
         <span>{{ t('applications.detail.labels.redirect_url') }}</span>
         <textarea name='redirectUris' rows='4' class='gcds-textarea' placeholder='Enter one URI per line'>{% if application_payload and application_payload.providers and application_payload.providers.oidc and application_payload.providers.oidc.properties and application_payload.providers.oidc.properties.redirectUris %}{% for uri in application_payload.providers.oidc.properties.redirectUris %}{{ uri }}

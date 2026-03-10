@@ -195,3 +195,6 @@ class AdminService:
     async def is_user_in_group(self, group_id: str, user_id: str) -> bool:
         """Check if a user is a member of a group."""
         return await self._client.is_user_in_group(group_id, user_id)
+
+    async def update_application_section(self, application_id: str, payload: dict) -> Any:
+        return await self._client.update_application(application_id, payload)

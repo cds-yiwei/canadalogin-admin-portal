@@ -1,0 +1,17 @@
+<form hx-post="/fragments/applications/{{ app_id }}/edit/people" hx-swap="none">
+  <div>
+    <label for="owners">{{ t('applications.detail.labels.owners') }}</label>
+    <div>
+      <small>{{ t('applications.detail.instructions.owners') }}</small>
+    </div>
+    <textarea id="owners" name="owners" placeholder="Enter one email per line">{% if application_payload and application_payload.owners %}{% for owner in application_payload.owners %}{{ owner.email }}
+{% endfor %}{% endif %}</textarea>
+    {% if errors and errors.owners %}
+      <div class="error">{{ errors.owners }}</div>
+    {% endif %}
+  </div>
+  <div class="form-actions">
+    <gcds-button type="submit">{{ t('common.save') }}</gcds-button>
+    <gcds-button type="button" button-role="secondary" hx-get="/fragments/people?app_id={{ app_id | urlencode }}" hx-swap="outerHTML">{{ t('common.cancel') }}</gcds-button>
+  </div>
+</form>

@@ -1,5 +1,9 @@
 from pathlib import Path
 
+# Validation helpers
+import re
+
+
 import json
 from datetime import date, datetime, time, timedelta
 from fastapi import APIRouter, Depends, Request
@@ -7,6 +11,7 @@ from fastapi.responses import HTMLResponse, Response
 from fastapi.templating import Jinja2Templates
 from pydantic import ValidationError
 
+from app.controller._utils import _build_application_update_payload
 from app.service.admin_service import AdminService
 from app.dependencies.auth import require_web_user
 from app.dependencies.services import get_admin_service
@@ -21,6 +26,93 @@ register_i18n(templates)
 
 @router.get("/requests", response_class=HTMLResponse)
 async def requests_fragment(request: Request):
+    pass
+
+
+def _is_valid_url(value: str) -> bool:
+    if not value:
+        return False
+    return bool(re.match(r"^https?://[\w\-\.]+(:\d+)?(/.*)?$", value))
+
+
+def _is_valid_email(value: str) -> bool:
+    if not value:
+        return False
+    return bool(re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", value))
+
+
+# Edit fragment GET handlers (application info, oidc settings, single logout, people)
+@router.get("/application-info/edit", response_class=HTMLResponse)
+async def fragment_application_info_edit(
+    request: Request,
+    app_id: str,
+    _user: dict = Depends(require_web_user),
+    service: AdminService = Depends(get_admin_service),
+):
+    application = await service.get_application_detail(app_id)
+    modal_html = templates.get_template("fragments/application_info_edit_modal.html").render(
+        request=request, application_payload=application, app_id=app_id
+    )
+    hx_trigger = {"modal": {"html": modal_html}}
+    return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
+
+
+@router.get("/oidc-settings/edit", response_class=HTMLResponse)
+async def fragment_oidc_settings_edit(
+    request: Request,
+    app_id: str,
+    _user: dict = Depends(require_web_user),
+    service: AdminService = Depends(get_admin_service),
+):
+    application = await service.get_application_detail(app_id)
+    modal_html = templates.get_template("fragments/oidc_settings_edit_modal.html").render(
+        request=request, application_payload=application, app_id=app_id
+    )
+    hx_trigger = {"modal": {"html": modal_html}}
+    return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
+
+
+@router.get("/single-logout/edit", response_class=HTMLResponse)
+async def fragment_single_logout_edit(
+    request: Request,
+    app_id: str,
+    _user: dict = Depends(require_web_user),
+    service: AdminService = Depends(get_admin_service),
+):
+    application = await service.get_application_detail(app_id)
+    application_payload = application or {}
+    logout_option = None
+    try:
+        logout_option = (
+            application_payload.get("providers", {})
+            .get("oidc", {})
+            .get("properties", {})
+            .get("additionalConfig", {})
+            .get("logoutOption")
+        )
+    except Exception:
+        logout_option = None
+    modal_html = templates.get_template("fragments/single_logout_edit_modal.html").render(
+        request=request, application_payload=application, app_id=app_id, logout_option=logout_option
+    )
+    hx_trigger = {"modal": {"html": modal_html}}
+    return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
+
+
+@router.get("/people/edit", response_class=HTMLResponse)
+async def fragment_people_edit(
+    request: Request,
+    app_id: str,
+    _user: dict = Depends(require_web_user),
+    service: AdminService = Depends(get_admin_service),
+):
+    application = await service.get_application_detail(app_id)
+    modal_html = templates.get_template("fragments/people_edit_modal.html").render(
+        request=request, application_payload=application, app_id=app_id
+    )
+    hx_trigger = {"modal": {"html": modal_html}}
+    return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
+
     """Render the requests panel as an SSR island."""
 
     session = getattr(request, "session", {}) or {}
@@ -459,6 +551,375 @@ async def add_owner_modal(request: Request, _user: dict = Depends(require_web_us
     )
     hx_trigger = {"modal": {"html": modal_html}}
     return Response("", headers={"HX-Trigger": json.dumps(hx_trigger)})
+
+
+@router.post("/applications/{app_id}/edit/application-info", response_class=HTMLResponse)
+async def submit_application_info(
+    request: Request,
+    app_id: str,
+    _user: dict = Depends(require_web_user),
+    service: AdminService = Depends(get_admin_service),
+):
+    form = await request.form()
+    name = str(form.get("name") or "").strip()
+    description = str(form.get("description") or "").strip()
+    company = str(form.get("companyName") or "").strip()
+    application_url = str(form.get("applicationUrl") or "").strip()
+
+    errors: dict = {}
+    if not name:
+        errors["name"] = translate(get_request_locale(request), "validation.required")
+    elif len(name) > 200:
+        errors["name"] = translate(get_request_locale(request), "validation.max_length", length=200)
+    if description and len(description) > 1000:
+        errors["description"] = translate(
+            get_request_locale(request), "validation.max_length", length=1000
+        )
+    if company and len(company) > 200:
+        errors["companyName"] = translate(
+            get_request_locale(request), "validation.max_length", length=200
+        )
+    if application_url and not _is_valid_url(application_url):
+        errors["applicationUrl"] = translate(get_request_locale(request), "validation.invalid_url")
+
+    if errors:
+        context = {
+            "request": request,
+            "application_payload": {
+                "name": name,
+                "description": description,
+                "providers": {
+                    "saml": {"properties": {"companyName": company}},
+                    "oidc": {"applicationUrl": application_url},
+                },
+            },
+            "app_id": app_id,
+            "errors": errors,
+        }
+        modal_html = templates.get_template("fragments/application_info_edit_modal.html").render(
+            request=request,
+            application_payload=context["application_payload"],
+            app_id=app_id,
+            errors=errors,
+        )
+        return Response(modal_html, status_code=400)
+
+    updates = {
+        "name": name,
+        "description": description,
+        "providers": {
+            "saml": {"properties": {"companyName": company}},
+            "oidc": {"applicationUrl": application_url},
+        },
+    }
+    payload = await _build_application_update_payload(app_id, service)
+    payload["name"] = updates["name"]
+    payload["description"] = updates["description"]
+    payload["providers"]["saml"]["properties"]["companyName"] = updates["providers"]["saml"][
+        "properties"
+    ]["companyName"]
+    payload["providers"]["oidc"]["applicationUrl"] = updates["providers"]["oidc"]["applicationUrl"]
+
+    await service.update_application_section(app_id, dict(payload))
+    locale = get_request_locale(request)
+    hx_trigger = {
+        "toast": {
+            "title": translate(locale, "toast.saved_title"),
+            "body": translate(locale, "applications.detail.update_success"),
+            "variant": "success",
+        },
+        "redirect": f"/applications/{app_id}",
+    }
+    return Response(
+        "", headers={"HX-Trigger": json.dumps(hx_trigger), "HX-Redirect": f"/applications/{app_id}"}
+    )
+
+
+@router.post("/applications/{app_id}/edit/oidc-settings", response_class=HTMLResponse)
+async def submit_oidc_settings(
+    request: Request,
+    app_id: str,
+    _user: dict = Depends(require_web_user),
+    service: AdminService = Depends(get_admin_service),
+):
+    form = await request.form()
+    redirect_text = str(form.get("redirectUris") or "").strip()
+    redirect_uris = [line.strip() for line in redirect_text.splitlines() if line.strip()]
+    require_pkce = (
+        True
+        if form.get("requirePkceVerification") == "true"
+        or form.get("requirePkceVerification") == "on"
+        else False
+    )
+
+    errors: dict = {}
+    invalid_uris = [u for u in redirect_uris if not _is_valid_url(u)]
+    if invalid_uris:
+        errors["redirectUris"] = translate(
+            get_request_locale(request), "validation.invalid_redirect_uris"
+        )
+    if errors:
+        context = {
+            "request": request,
+            "application_payload": {
+                "providers": {
+                    "oidc": {
+                        "properties": {"redirectUris": redirect_uris},
+                        "requirePkceVerification": require_pkce,
+                    }
+                }
+            },
+            "app_id": app_id,
+            "errors": errors,
+        }
+        modal_html = templates.get_template("fragments/oidc_settings_edit_modal.html").render(
+            request=request,
+            application_payload=context["application_payload"],
+            app_id=app_id,
+            errors=errors,
+        )
+        return Response(modal_html, status_code=400)
+
+    # Build the canonical payload and apply the OIDC-specific updates (mirror submit_application_info pattern)
+    updates = {
+        "providers": {
+            "oidc": {"properties": {"redirectUris": redirect_uris}, "requirePkceVerification": require_pkce}
+        }
+    }
+    payload = await _build_application_update_payload(app_id, service)
+
+    payload["providers"]["oidc"]["properties"]["redirectUris"] = updates["providers"]["oidc"]["properties"]["redirectUris"]
+    payload["providers"]["oidc"]["requirePkceVerification"] = updates["providers"]["oidc"]["requirePkceVerification"]
+
+    try:
+        await service.update_application_section(app_id, dict(payload))
+        locale = get_request_locale(request)
+        hx_trigger = {
+            "toast": {
+                "title": translate(locale, "toast.saved_title"),
+                "body": translate(locale, "applications.detail.update_success"),
+                "variant": "success",
+            },
+            "redirect": f"/applications/{app_id}",
+        }
+        return Response(
+            "",
+            headers={
+                "HX-Trigger": json.dumps(hx_trigger),
+                "HX-Redirect": f"/applications/{app_id}",
+            },
+        )
+    except RuntimeError as exc:
+        msg = str(exc)
+        corr = None
+        import re as _re
+
+        m = _re.search(r"corr=([A-Za-z0-9\-]+)", msg)
+        if m:
+            corr = m.group(1)
+        locale = get_request_locale(request)
+        body = translate(locale, "applications.detail.update_failed")
+        if corr:
+            body = f"{body} (ref: {corr})"
+        hx = {
+            "toast": {
+                "title": translate(locale, "toast.error_title"),
+                "body": body,
+                "variant": "danger",
+            }
+        }
+        return Response("", headers={"HX-Trigger": json.dumps(hx)}, status_code=502)
+
+
+@router.post("/applications/{app_id}/edit/single-logout", response_class=HTMLResponse)
+async def submit_single_logout(
+    request: Request,
+    app_id: str,
+    _user: dict = Depends(require_web_user),
+    service: AdminService = Depends(get_admin_service),
+):
+    form = await request.form()
+    logout_option = str(form.get("logoutOption") or "").strip()
+    logout_uri = str(form.get("logoutURI") or "").strip()
+    redirect_text = str(form.get("logoutRedirectURIs") or "").strip()
+    redirect_uris = [line.strip() for line in redirect_text.splitlines() if line.strip()]
+
+    errors: dict = {}
+    if logout_option not in {"none", "front_channel", "back_channel"}:
+        errors["logoutOption"] = translate(get_request_locale(request), "validation.invalid_choice")
+    if logout_uri and not _is_valid_url(logout_uri):
+        errors["logoutURI"] = translate(get_request_locale(request), "validation.invalid_url")
+    invalid_redirects = [u for u in redirect_uris if not _is_valid_url(u)]
+    if invalid_redirects:
+        errors["logoutRedirectURIs"] = translate(
+            get_request_locale(request), "validation.invalid_redirect_uris"
+        )
+
+    if errors:
+        context = {
+            "request": request,
+            "application_payload": {
+                "providers": {
+                    "oidc": {
+                        "properties": {
+                            "additionalConfig": {
+                                "logoutOption": logout_option,
+                                "logoutURI": logout_uri,
+                                "logoutRedirectURIs": redirect_uris,
+                            }
+                        }
+                    }
+                }
+            },
+            "app_id": app_id,
+            "errors": errors,
+        }
+        modal_html = templates.get_template("fragments/single_logout_edit_modal.html").render(
+            request=request,
+            application_payload=context["application_payload"],
+            app_id=app_id,
+            errors=errors,
+            logout_option=logout_option,
+        )
+        return Response(modal_html, status_code=400)
+
+    # Build canonical payload and apply single-logout updates (mirror submit_application_info pattern)
+    updates = {
+        "providers": {
+            "oidc": {
+                "properties": {
+                    "additionalConfig": {
+                        "logoutOption": logout_option,
+                        "logoutURI": logout_uri,
+                        "logoutRedirectURIs": redirect_uris,
+                    }
+                }
+            }
+        }
+    }
+    payload = await _build_application_update_payload(app_id, service)
+
+
+    payload["providers"]["oidc"]["properties"]["additionalConfig"]["logoutOption"] = updates["providers"]["oidc"]["properties"]["additionalConfig"]["logoutOption"]
+    payload["providers"]["oidc"]["properties"]["additionalConfig"]["logoutURI"] = updates["providers"]["oidc"]["properties"]["additionalConfig"]["logoutURI"]
+    payload["providers"]["oidc"]["properties"]["additionalConfig"]["logoutRedirectURIs"] = updates["providers"]["oidc"]["properties"]["additionalConfig"]["logoutRedirectURIs"]
+
+    try:
+        await service.update_application_section(app_id, dict(payload))
+        locale = get_request_locale(request)
+        hx_trigger = {
+            "toast": {
+                "title": translate(locale, "toast.saved_title"),
+                "body": translate(locale, "applications.detail.update_success"),
+                "variant": "success",
+            },
+            "redirect": f"/applications/{app_id}",
+        }
+        return Response(
+            "",
+            headers={
+                "HX-Trigger": json.dumps(hx_trigger),
+                "HX-Redirect": f"/applications/{app_id}",
+            },
+        )
+    except RuntimeError as exc:
+        msg = str(exc)
+        corr = None
+        import re as _re
+
+        m = _re.search(r"corr=([A-Za-z0-9\-]+)", msg)
+        if m:
+            corr = m.group(1)
+        locale = get_request_locale(request)
+        body = translate(locale, "applications.detail.update_failed")
+        if corr:
+            body = f"{body} (ref: {corr})"
+        hx = {
+            "toast": {
+                "title": translate(locale, "toast.error_title"),
+                "body": body,
+                "variant": "danger",
+            }
+        }
+        return Response("", headers={"HX-Trigger": json.dumps(hx)}, status_code=502)
+
+
+@router.post("/applications/{app_id}/edit/people", response_class=HTMLResponse)
+async def submit_people(
+    request: Request,
+    app_id: str,
+    _user: dict = Depends(require_web_user),
+    service: AdminService = Depends(get_admin_service),
+):
+    form = await request.form()
+    owners_text = str(form.get("owners") or "").strip()
+    owners = [email.strip() for email in owners_text.splitlines() if email.strip()]
+
+    errors: dict = {}
+    invalid = [o for o in owners if not _is_valid_email(o)]
+    if invalid:
+        errors["owners"] = translate(get_request_locale(request), "validation.invalid_emails")
+    if len(owners) > 50:
+        errors["owners"] = translate(
+            get_request_locale(request), "validation.too_many_items", max=50
+        )
+
+    if errors:
+        context = {
+            "request": request,
+            "application_payload": {"owners": [{"email": o} for o in owners]},
+            "app_id": app_id,
+            "errors": errors,
+        }
+        modal_html = templates.get_template("fragments/people_edit_modal.html").render(
+            request=request,
+            application_payload=context["application_payload"],
+            app_id=app_id,
+            errors=errors,
+        )
+        return Response(modal_html, status_code=400)
+
+    payload = {"owners": [{"email": o} for o in owners]}
+    try:
+        await service.update_application_section(app_id, "people", payload)
+        locale = get_request_locale(request)
+        hx_trigger = {
+            "toast": {
+                "title": translate(locale, "toast.saved_title"),
+                "body": translate(locale, "applications.detail.update_success"),
+                "variant": "success",
+            },
+            "redirect": f"/applications/{app_id}",
+        }
+        return Response(
+            "",
+            headers={
+                "HX-Trigger": json.dumps(hx_trigger),
+                "HX-Redirect": f"/applications/{app_id}",
+            },
+        )
+    except RuntimeError as exc:
+        msg = str(exc)
+        corr = None
+        import re as _re
+
+        m = _re.search(r"corr=([A-Za-z0-9\-]+)", msg)
+        if m:
+            corr = m.group(1)
+        locale = get_request_locale(request)
+        body = translate(locale, "applications.detail.update_failed")
+        if corr:
+            body = f"{body} (ref: {corr})"
+        hx = {
+            "toast": {
+                "title": translate(locale, "toast.error_title"),
+                "body": body,
+                "variant": "danger",
+            }
+        }
+        return Response("", headers={"HX-Trigger": json.dumps(hx)}, status_code=502)
+    except NotImplementedError:
+        return Response(status_code=501)
 
 
 @router.get("/{fragment_path:path}", response_class=HTMLResponse)

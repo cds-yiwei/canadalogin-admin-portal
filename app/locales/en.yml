@@ -161,6 +161,7 @@ applications:
     open_in_verify: "Open in Verify"
     raw_payload_title: "Raw payload"
     raw_payload_help: "Full response from IBM Verify."
+    update_success: "Application updated"
     labels:
       id: "ID"
       name: "Name"
@@ -297,6 +298,8 @@ toast:
   thanks: "Thanks {name}!"
   note_received: "Note received: {message}"
   welcome_back_demo: "Welcome back! This is a demo toast."
+  saved_title: "Saved"
+  saved_message: "Your changes have been saved."
 common:
   na: "n/a"
   view: "View"

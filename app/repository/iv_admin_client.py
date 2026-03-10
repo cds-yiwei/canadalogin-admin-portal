@@ -106,6 +106,14 @@ class IBMVerifyAdminClient:
         self._handle_response(response)
         return response.json()
 
+    async def update_application(self, application_id: str, payload: Dict[str, Any]) -> bool:
+        response = await self._client.put(
+            f"{self._base_url}/v1.0/applications/{application_id}",
+            json=payload,
+        )
+        self._handle_response(response)
+        return True
+
     async def delete_application(self, application_id: str) -> None:
         response = await self._client.delete(f"{self._base_url}/v1.0/applications/{application_id}")
         self._handle_response(response)

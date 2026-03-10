@@ -1,0 +1,26 @@
+<div class='modal-panel' role='dialog' aria-modal='true'>
+  <div class='modal-header' style='display:flex; align-items:center; gap:12px;'>
+    <h3 class='modal-title'>{{ t('applications.create.sections.oidc_settings') }}</h3>
+    <button class='modal-close' data-modal-close aria-label='Close'>×</button>
+  </div>
+  <div class='modal-body'>
+    <form class='gcds-stack' style='gap:12px;' hx-post='/fragments/applications/{{ app_id }}/edit/oidc-settings' hx-swap='none'>
+      <label class='gcds-stack' style='gap:6px;'>
+        <span>{{ t('applications.detail.labels.redirect_url') }}</span>
+        <textarea name='redirectUris' rows='4' class='gcds-textarea' placeholder='Enter one URI per line'>{% if application_payload and application_payload.providers and application_payload.providers.oidc and application_payload.providers.oidc.properties and application_payload.providers.oidc.properties.redirectUris %}{% for uri in application_payload.providers.oidc.properties.redirectUris %}{{ uri }}
+{% endfor %}{% endif %}</textarea>
+        {% if errors and errors.redirectUris %}<div class='error'>{{ errors.redirectUris }}</div>{% endif %}
+      </label>
+      <label class='gcds-stack' style='gap:6px;'>
+        <label>
+          <input type='checkbox' name='requirePkceVerification' value='true' {% if application_payload and application_payload.providers and application_payload.providers.oidc and (application_payload.providers.oidc.requirePkceVerification == true or application_payload.providers.oidc.requirePkceVerification == 'true') %}checked{% endif %}>
+          {{ t('applications.detail.labels.pkce_enabled') }}
+        </label>
+      </label>
+      <div style='display:flex; gap:10px; justify-content:flex-end;'>
+        <button type='button' class='btn secondary' data-modal-close>{{ t('common.cancel') }}</button>
+        <button type='submit' class='btn'>{{ t('common.save') }}</button>
+      </div>
+    </form>
+  </div>
+</div>

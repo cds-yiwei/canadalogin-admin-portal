@@ -620,7 +620,7 @@ async def submit_application_info(
     ]["companyName"]
     payload["providers"]["oidc"]["applicationUrl"] = updates["providers"]["oidc"]["applicationUrl"]
 
-    await service.update_application_section(app_id, "application_info", dict(payload))
+    await service.update_application_section(app_id, dict(payload))
     locale = get_request_locale(request)
     hx_trigger = {
         "toast": {
@@ -680,16 +680,19 @@ async def submit_oidc_settings(
         )
         return Response(modal_html, status_code=400)
 
-    payload = {
+    # Build the canonical payload and apply the OIDC-specific updates (mirror submit_application_info pattern)
+    updates = {
         "providers": {
-            "oidc": {
-                "properties": {"redirectUris": redirect_uris},
-                "requirePkceVerification": require_pkce,
-            }
+            "oidc": {"properties": {"redirectUris": redirect_uris}, "requirePkceVerification": require_pkce}
         }
     }
+    payload = await _build_application_update_payload(app_id, service)
+
+    payload["providers"]["oidc"]["properties"]["redirectUris"] = updates["providers"]["oidc"]["properties"]["redirectUris"]
+    payload["providers"]["oidc"]["requirePkceVerification"] = updates["providers"]["oidc"]["requirePkceVerification"]
+
     try:
-        await service.update_application_section(app_id, "oidc_settings", payload)
+        await service.update_application_section(app_id, dict(payload))
         locale = get_request_locale(request)
         hx_trigger = {
             "toast": {
@@ -726,8 +729,6 @@ async def submit_oidc_settings(
             }
         }
         return Response("", headers={"HX-Trigger": json.dumps(hx)}, status_code=502)
-    except NotImplementedError:
-        return Response(status_code=501)
 
 
 @router.post("/applications/{app_id}/edit/single-logout", response_class=HTMLResponse)
@@ -744,7 +745,7 @@ async def submit_single_logout(
     redirect_uris = [line.strip() for line in redirect_text.splitlines() if line.strip()]
 
     errors: dict = {}
-    if logout_option not in {"none", "frontchannel", "backchannel"}:
+    if logout_option not in {"none", "front_channel", "back_channel"}:
         errors["logoutOption"] = translate(get_request_locale(request), "validation.invalid_choice")
     if logout_uri and not _is_valid_url(logout_uri):
         errors["logoutURI"] = translate(get_request_locale(request), "validation.invalid_url")
@@ -782,7 +783,8 @@ async def submit_single_logout(
         )
         return Response(modal_html, status_code=400)
 
-    payload = {
+    # Build canonical payload and apply single-logout updates (mirror submit_application_info pattern)
+    updates = {
         "providers": {
             "oidc": {
                 "properties": {
@@ -795,8 +797,15 @@ async def submit_single_logout(
             }
         }
     }
+    payload = await _build_application_update_payload(app_id, service)
+
+
+    payload["providers"]["oidc"]["properties"]["additionalConfig"]["logoutOption"] = updates["providers"]["oidc"]["properties"]["additionalConfig"]["logoutOption"]
+    payload["providers"]["oidc"]["properties"]["additionalConfig"]["logoutURI"] = updates["providers"]["oidc"]["properties"]["additionalConfig"]["logoutURI"]
+    payload["providers"]["oidc"]["properties"]["additionalConfig"]["logoutRedirectURIs"] = updates["providers"]["oidc"]["properties"]["additionalConfig"]["logoutRedirectURIs"]
+
     try:
-        await service.update_application_section(app_id, "single_logout", payload)
+        await service.update_application_section(app_id, dict(payload))
         locale = get_request_locale(request)
         hx_trigger = {
             "toast": {
@@ -833,8 +842,6 @@ async def submit_single_logout(
             }
         }
         return Response("", headers={"HX-Trigger": json.dumps(hx)}, status_code=502)
-    except NotImplementedError:
-        return Response(status_code=501)
 
 
 @router.post("/applications/{app_id}/edit/people", response_class=HTMLResponse)

@@ -163,6 +163,7 @@ applications:
     open_in_verify: Ouvrir dans Verify
     raw_payload_title: Charge utile brute
     raw_payload_help: Reponse complete d'IBM Verify.
+    update_success: Application mise à jour avec succès
     labels:
       id: ID
       name: Nom
@@ -299,6 +300,8 @@ toast:
   thanks: Merci {name}!
   note_received: 'Note recue: {message}'
   welcome_back_demo: Bon retour! Ceci est une notification de demonstration.
+  saved_title: Enregistré
+  saved_message: Vos modifications ont été enregistrées.
 common:
   na: s/o
   view: Voir

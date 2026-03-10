@@ -9,8 +9,8 @@
         <span>{{ t('applications.detail.labels.logout_method') }}</span>
         <select name='logoutOption' class='gcds-select'>
           <option value='none' {% if not (logout_option) or logout_option == 'none' %}selected{% endif %}>{{ t('applications.create.logout_method.none') }}</option>
-          <option value='frontchannel' {% if logout_option == 'frontchannel' %}selected{% endif %}>{{ t('applications.create.logout_method.frontchannel') }}</option>
-          <option value='backchannel' {% if logout_option == 'backchannel' %}selected{% endif %}>{{ t('applications.create.logout_method.backchannel') }}</option>
+          <option value='front_channel' {% if logout_option == 'front_channel' %}selected{% endif %}>{{ t('applications.create.logout_method.front_channel') }}</option>
+          <option value='back_channel' {% if logout_option == 'back_channel' %}selected{% endif %}>{{ t('applications.create.logout_method.back_channel') }}</option>
         </select>
         {% if errors and errors.logoutOption %}<div class='error'>{{ errors.logoutOption }}</div>{% endif %}
       </label>
